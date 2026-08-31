@@ -1,0 +1,38 @@
+.panel {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.title {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+}
+
+.code {
+  margin: 0;
+  padding: 8px 8px 8px 34px;
+  list-style: decimal;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  overflow-x: auto;
+}
+
+.code li::marker {
+  color: var(--text-faint);
+  font-size: 10px;
+}
+
+.active {
+  color: var(--text);
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 2px 0 0 var(--accent);
+}

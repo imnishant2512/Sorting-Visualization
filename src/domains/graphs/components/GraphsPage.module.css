@@ -1,0 +1,98 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.intro h1 {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.intro p {
+  margin: 0;
+  max-width: 78ch;
+  color: var(--text-muted);
+}
+
+.setup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tools,
+.ops {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.toolActive {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.reset {
+  margin-left: auto;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.hint strong {
+  color: var(--accent);
+}
+
+.readoutRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.metric strong {
+  font-family: var(--mono);
+  color: var(--text);
+  margin-left: 4px;
+}
+
+.note {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--mono);
+}
+
+.readouts {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.9fr) minmax(260px, 1.5fr) minmax(200px, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .readouts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.footnote {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-faint);
+  max-width: 80ch;
+}

@@ -1,0 +1,117 @@
+.wrap {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+}
+
+.edge line,
+.pathEdge line {
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  transition: stroke 0.12s ease;
+}
+
+.pathEdge line {
+  stroke: var(--v-sorted);
+  stroke-width: 3.5;
+}
+
+.hit {
+  stroke: transparent !important;
+  stroke-width: 14 !important;
+  cursor: pointer;
+}
+
+.edge text,
+.pathEdge text {
+  fill: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  pointer-events: none;
+}
+
+.pathEdge text {
+  fill: var(--v-sorted);
+}
+
+.node,
+.selected,
+.frontier,
+.visited,
+.active,
+.start,
+.end {
+  cursor: pointer;
+}
+
+.node circle,
+.selected circle,
+.frontier circle,
+.visited circle,
+.active circle,
+.start circle,
+.end circle {
+  fill: var(--bg-raised);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  transition: fill 0.12s ease, stroke 0.12s ease;
+}
+
+.node text,
+.selected text,
+.frontier text,
+.visited text,
+.active text,
+.start text,
+.end text {
+  fill: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.selected circle {
+  stroke: var(--accent);
+  stroke-dasharray: 4 3;
+}
+
+.frontier circle {
+  fill: rgba(86, 182, 255, 0.3);
+  stroke: var(--v-read);
+}
+
+.visited circle {
+  fill: rgba(199, 125, 255, 0.32);
+  stroke: var(--v-write);
+}
+
+.active circle {
+  fill: rgba(255, 209, 102, 0.3);
+  stroke: var(--v-compare);
+  stroke-width: 3;
+}
+
+.start circle {
+  fill: rgba(86, 182, 255, 0.22);
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.end circle {
+  fill: rgba(69, 208, 158, 0.22);
+  stroke: var(--v-sorted);
+  stroke-width: 3;
+}
+
+.dist {
+  fill: var(--accent) !important;
+  font-size: 10px !important;
+}

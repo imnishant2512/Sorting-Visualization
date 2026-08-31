@@ -1,0 +1,124 @@
+.wrap {
+  min-height: 220px;
+  padding: 12px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+}
+
+.svg {
+  display: block;
+  max-width: 100%;
+}
+
+.edge {
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.node circle,
+.pointer circle,
+.comparing circle,
+.found circle,
+.visited circle {
+  fill: var(--bg-raised);
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+  transition: fill 0.12s ease, stroke 0.12s ease;
+}
+
+.node text,
+.pointer text,
+.comparing text,
+.found text,
+.visited text {
+  fill: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.pointer circle {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.comparing circle {
+  fill: rgba(255, 209, 102, 0.24);
+  stroke: var(--v-compare);
+  stroke-width: 2.5;
+}
+
+.comparing text {
+  fill: var(--v-compare);
+}
+
+.visited circle {
+  fill: rgba(199, 125, 255, 0.22);
+  stroke: var(--v-write);
+}
+
+.found circle {
+  fill: rgba(69, 208, 158, 0.26);
+  stroke: var(--v-sorted);
+  stroke-width: 2.5;
+}
+
+.found text {
+  fill: var(--v-sorted);
+}
+
+.detached circle {
+  stroke-dasharray: 3 3;
+  opacity: 0.75;
+}
+
+.detachedLabel {
+  fill: var(--text-faint);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.empty {
+  margin: 0 0 8px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* The array a heap is actually stored in, shown under its tree view. */
+.arrayStrip {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.cell,
+.cellHot {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 34px;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-raised);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.cellHot {
+  border-color: var(--v-compare);
+  background: rgba(255, 209, 102, 0.18);
+  color: var(--v-compare);
+}
+
+.cell em,
+.cellHot em {
+  font-style: normal;
+  font-size: 9px;
+  color: var(--text-faint);
+}

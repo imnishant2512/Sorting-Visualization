@@ -1,0 +1,99 @@
+.view {
+  display: flex;
+  align-items: center;
+  min-height: 150px;
+  padding: 20px 16px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+.chain {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.head,
+.null {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  padding: 4px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.head {
+  color: var(--accent);
+  border-color: var(--accent);
+  border-style: solid;
+}
+
+.arrow {
+  color: var(--text-faint);
+  font-size: 15px;
+}
+
+.node {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-raised);
+  overflow: hidden;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  height: 46px;
+  font-family: var(--mono);
+  font-size: 15px;
+}
+
+/* The narrow right-hand cell stands for the node's `next` pointer field. */
+.next {
+  width: 16px;
+  border-left: 1px solid var(--border-strong);
+  background: var(--bg-sunken);
+}
+
+.pointer {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.compare {
+  border-color: var(--v-compare);
+  background: rgba(255, 209, 102, 0.18);
+  color: var(--v-compare);
+}
+
+.created {
+  border-color: var(--v-write);
+  background: rgba(199, 125, 255, 0.2);
+  color: var(--v-write);
+}
+
+.found {
+  border-color: var(--v-sorted);
+  background: rgba(69, 208, 158, 0.2);
+  color: var(--v-sorted);
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-faint);
+  font-style: italic;
+}
