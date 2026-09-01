@@ -156,3 +156,10 @@ loading an old page that points at asset hashes the deploy no longer has.
 - linked lists mirrored against a plain array through 60 random operations;
 - hand-checked counters (bubble sort on `[3,1,2]` is exactly 3 comparisons and 2 swaps);
 - every emitted pseudocode line index being in range.
+
+## Contributing
+
+`main` is always deployable and is never committed to directly — branch, open a
+pull request, let CI go green, squash and merge. Branch naming, commit style,
+the invariants a change must preserve, and the `main` ruleset are all in
+[CONTRIBUTING.md](CONTRIBUTING.md).

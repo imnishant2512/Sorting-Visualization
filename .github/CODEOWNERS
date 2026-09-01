@@ -1,0 +1,3 @@
+# Every PR requests review from the repo owner by default.
+# Paths are matched last-wins, so add narrower rules below this line.
+*       @imnishant2512
