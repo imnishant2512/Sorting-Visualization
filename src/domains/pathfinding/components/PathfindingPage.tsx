@@ -250,11 +250,11 @@ export function PathfindingPage() {
       </div>
 
       <footer className={styles.legend}>
-        <Legend color="rgba(86, 182, 255, 0.45)" label="Frontier (discovered)" />
-        <Legend color="rgba(199, 125, 255, 0.42)" label="Visited" />
+        <Legend color="rgba(86, 180, 233, 0.45)" label="Frontier (discovered)" />
+        <Legend color="rgba(204, 121, 167, 0.42)" label="Visited" />
         <Legend color="var(--v-sorted)" label="Final route" />
         <Legend color="#4a5468" label="Wall" />
-        <Legend color="rgba(255, 159, 69, 0.28)" label={`Weight ${HEAVY_WEIGHT}`} />
+        <Legend color="rgba(230, 159, 0, 0.28)" label={`Weight ${HEAVY_WEIGHT}`} />
       </footer>
     </div>
   );

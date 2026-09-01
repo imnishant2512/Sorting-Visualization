@@ -69,12 +69,12 @@
 }
 
 .found {
-  background: rgba(69, 208, 158, 0.14);
+  background: rgba(0, 158, 115, 0.14);
   color: var(--v-sorted);
 }
 
 .missing {
-  background: rgba(255, 107, 107, 0.13);
+  background: rgba(213, 94, 0, 0.13);
   color: var(--v-swap);
 }
 

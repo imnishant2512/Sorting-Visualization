@@ -1,29 +1,53 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useStepPlayer } from '../../../engine/useStepPlayer';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { ShareLink } from '../../../shared/components/ShareLink';
 import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
+import { randomSeed } from '../../../shared/utils/random';
 import {
   ARRAY_SHAPES,
   ARRAY_SIZE,
   SPEED_MS,
+  isArrayShape,
   makeArray,
   type ArrayShape,
 } from '../../../shared/utils/randomArray';
 import { sortEngine } from '../engine';
-import { MAX_SIZE_BY_ID, SORT_BY_ID } from '../registry';
+import { MAX_SIZE_BY_ID, SORT_BY_ID, SORT_ALGORITHMS } from '../registry';
 import { SORT_STAT_KEYS } from '../types';
 import { SortPanel } from './SortPanel';
 import styles from './SortingPage.module.css';
 
+function readInt(value: string | null): number | null {
+  if (value === null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function readAlgorithm(value: string | null): string | null {
+  return value && SORT_ALGORITHMS.some((a) => a.id === value) ? value : null;
+}
+
 export function SortingPage() {
-  const [size, setSize] = useState<number>(ARRAY_SIZE.default);
-  const [shape, setShape] = useState<ArrayShape>('random');
-  const [baseArray, setBaseArray] = useState<number[]>(() => makeArray('random', ARRAY_SIZE.default));
+  const [params, setParams] = useSearchParams();
+
+  // Initial state comes from the URL when present, so a shared link reproduces
+  // the exact run. The array travels as a seed rather than 45 numbers.
+  const [seed, setSeed] = useState<number>(() => readInt(params.get('seed')) ?? randomSeed());
+  const [size, setSize] = useState<number>(
+    () => readInt(params.get('size')) ?? ARRAY_SIZE.default,
+  );
+  const [shape, setShape] = useState<ArrayShape>(() =>
+    isArrayShape(params.get('shape')) ? (params.get('shape') as ArrayShape) : 'random',
+  );
   const [speedMs, setSpeedMs] = useState<number>(SPEED_MS.default);
   const [playing, setPlaying] = useState(false);
-  const [raceMode, setRaceMode] = useState(false);
-  const [idA, setIdA] = useState('quick');
-  const [idB, setIdB] = useState('merge');
+  const [raceMode, setRaceMode] = useState(() => Boolean(params.get('vs')));
+  const [idA, setIdA] = useState(() => readAlgorithm(params.get('algo')) ?? 'quick');
+  const [idB, setIdB] = useState(() => readAlgorithm(params.get('vs')) ?? 'merge');
+
+  const baseArray = useMemo(() => makeArray(shape, size, seed), [shape, size, seed]);
 
   // One input object shared by both players: in race mode each algorithm must
   // start from the identical array for the comparison to mean anything.
@@ -65,10 +89,22 @@ export function SortingPage() {
 
   const regenerate = (shapeToUse: ArrayShape, sizeToUse: number, capToUse = sizeCap) => {
     setPlaying(false);
-    const clamped = Math.min(sizeToUse, capToUse);
-    setSize(clamped);
-    setBaseArray(makeArray(shapeToUse, clamped));
+    setSize(Math.min(sizeToUse, capToUse));
+    setShape(shapeToUse);
+    setSeed(randomSeed());
   };
+
+  /** Keeps the address bar in step, so the current run is always linkable. */
+  useEffect(() => {
+    const next = new URLSearchParams();
+    next.set('algo', idA);
+    next.set('size', String(size));
+    next.set('shape', shape);
+    next.set('seed', String(seed));
+    if (raceMode) next.set('vs', idB);
+    // replace, not push — this would otherwise flood the back button.
+    setParams(next, { replace: true });
+  }, [idA, idB, size, shape, seed, raceMode, setParams]);
 
   /** Selecting an algorithm can tighten the size ceiling, so re-clamp here. */
   const selectAlgorithm = (panel: 'a' | 'b', id: string) => {
@@ -165,6 +201,7 @@ export function SortingPage() {
         </label>
 
         <button onClick={() => regenerate(shape, size)}>New Array</button>
+        <ShareLink />
 
         <label className={styles.toggle}>
           <input

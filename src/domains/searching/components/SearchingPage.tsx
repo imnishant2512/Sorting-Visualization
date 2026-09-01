@@ -1,15 +1,28 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useStepPlayer } from '../../../engine/useStepPlayer';
 import { BarChart, type BarState } from '../../../shared/components/BarChart';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { ShareLink } from '../../../shared/components/ShareLink';
 import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
 import { PseudocodePanel } from '../../../shared/components/PseudocodePanel';
 import { StatsPanel } from '../../../shared/components/StatsPanel';
+import { randomSeed } from '../../../shared/utils/random';
 import { ARRAY_SIZE, SPEED_MS, randomSortedArray } from '../../../shared/utils/randomArray';
 import { SEARCH_ALGORITHMS, SEARCH_BY_ID } from '../algorithms';
 import { searchEngine } from '../engine';
 import { SEARCH_STAT_KEYS } from '../types';
 import styles from './SearchingPage.module.css';
+
+function readInt(value: string | null): number | null {
+  if (value === null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function readAlgorithm(value: string | null): string | null {
+  return value && SEARCH_ALGORITHMS.some((a) => a.id === value) ? value : null;
+}
 
 const STAT_LABELS = [
   { key: 'comparisons', label: 'Comparisons' },
@@ -24,14 +37,34 @@ function pickTarget(values: number[]): number {
 }
 
 export function SearchingPage() {
-  const [size, setSize] = useState(DEFAULT_SIZE);
-  const [values, setValues] = useState<number[]>(() => randomSortedArray(DEFAULT_SIZE));
-  const [algorithmId, setAlgorithmId] = useState('binary');
+  const [params, setParams] = useSearchParams();
+
+  // Initial state comes from the URL when present, so a shared link reproduces
+  // the exact run. The array travels as a seed rather than 30 numbers.
+  const [seed, setSeed] = useState<number>(() => readInt(params.get('seed')) ?? randomSeed());
+  const [size, setSize] = useState(() => readInt(params.get('size')) ?? DEFAULT_SIZE);
+  const [algorithmId, setAlgorithmId] = useState(
+    () => readAlgorithm(params.get('algo')) ?? 'binary',
+  );
+
+  const values = useMemo(() => randomSortedArray(size, seed), [size, seed]);
+
   // Default to a target that is actually in the array, so the first run finds
   // something. Chosen alongside the array rather than in a reactive effect.
-  const [target, setTarget] = useState<number>(() => pickTarget(values));
+  const [target, setTarget] = useState<number>(
+    () => readInt(params.get('target')) ?? pickTarget(values),
+  );
   const [speedMs, setSpeedMs] = useState<number>(SPEED_MS.default * 3);
   const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    next.set('algo', algorithmId);
+    next.set('size', String(size));
+    next.set('seed', String(seed));
+    next.set('target', String(target));
+    setParams(next, { replace: true });
+  }, [algorithmId, size, seed, target, setParams]);
 
   const def = SEARCH_BY_ID[algorithmId];
 
@@ -66,9 +99,10 @@ export function SearchingPage() {
 
   const regenerate = (nextSize: number) => {
     setPlaying(false);
-    const nextValues = randomSortedArray(nextSize);
-    setValues(nextValues);
-    setTarget(pickTarget(nextValues));
+    const nextSeed = randomSeed();
+    setSize(nextSize);
+    setSeed(nextSeed);
+    setTarget(pickTarget(randomSortedArray(nextSize, nextSeed)));
   };
 
   const outcome = state.foundIndex !== null
@@ -160,6 +194,7 @@ export function SearchingPage() {
         </label>
 
         <button onClick={() => regenerate(size)}>New Array</button>
+        <ShareLink />
       </div>
 
       <p className={styles.summary}>

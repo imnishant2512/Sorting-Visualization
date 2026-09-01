@@ -65,7 +65,7 @@
 }
 .found {
   background: var(--v-found);
-  box-shadow: 0 0 0 2px rgba(69, 208, 158, 0.4);
+  box-shadow: 0 0 0 2px rgba(0, 158, 115, 0.4);
 }
 .excluded {
   background: var(--v-excluded);

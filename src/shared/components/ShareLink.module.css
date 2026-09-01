@@ -1,0 +1,4 @@
+.copied {
+  border-color: var(--v-sorted);
+  color: var(--v-sorted);
+}

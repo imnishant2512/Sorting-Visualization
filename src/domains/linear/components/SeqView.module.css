@@ -53,25 +53,25 @@
 }
 
 .compare {
-  background: rgba(255, 209, 102, 0.2);
+  background: rgba(240, 228, 66, 0.2);
   border-color: var(--v-compare);
   color: var(--v-compare);
 }
 
 .read {
-  background: rgba(86, 182, 255, 0.18);
+  background: rgba(86, 180, 233, 0.18);
   border-color: var(--v-read);
   color: var(--v-read);
 }
 
 .write {
-  background: rgba(199, 125, 255, 0.2);
+  background: rgba(204, 121, 167, 0.2);
   border-color: var(--v-write);
   color: var(--v-write);
 }
 
 .found {
-  background: rgba(69, 208, 158, 0.2);
+  background: rgba(0, 158, 115, 0.2);
   border-color: var(--v-sorted);
   color: var(--v-sorted);
 }

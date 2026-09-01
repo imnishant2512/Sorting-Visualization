@@ -84,29 +84,29 @@
 }
 
 .frontier circle {
-  fill: rgba(86, 182, 255, 0.3);
+  fill: rgba(86, 180, 233, 0.3);
   stroke: var(--v-read);
 }
 
 .visited circle {
-  fill: rgba(199, 125, 255, 0.32);
+  fill: rgba(204, 121, 167, 0.32);
   stroke: var(--v-write);
 }
 
 .active circle {
-  fill: rgba(255, 209, 102, 0.3);
+  fill: rgba(240, 228, 66, 0.3);
   stroke: var(--v-compare);
   stroke-width: 3;
 }
 
 .start circle {
-  fill: rgba(86, 182, 255, 0.22);
+  fill: rgba(86, 180, 233, 0.22);
   stroke: var(--accent);
   stroke-width: 3;
 }
 
 .end circle {
-  fill: rgba(69, 208, 158, 0.22);
+  fill: rgba(0, 158, 115, 0.22);
   stroke: var(--v-sorted);
   stroke-width: 3;
 }

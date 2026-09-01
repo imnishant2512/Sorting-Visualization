@@ -76,19 +76,19 @@
 
 .compare {
   border-color: var(--v-compare);
-  background: rgba(255, 209, 102, 0.18);
+  background: rgba(240, 228, 66, 0.18);
   color: var(--v-compare);
 }
 
 .created {
   border-color: var(--v-write);
-  background: rgba(199, 125, 255, 0.2);
+  background: rgba(204, 121, 167, 0.2);
   color: var(--v-write);
 }
 
 .found {
   border-color: var(--v-sorted);
-  background: rgba(69, 208, 158, 0.2);
+  background: rgba(0, 158, 115, 0.2);
   color: var(--v-sorted);
 }
 

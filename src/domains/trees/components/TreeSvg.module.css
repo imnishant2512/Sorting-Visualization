@@ -44,7 +44,7 @@
 }
 
 .comparing circle {
-  fill: rgba(255, 209, 102, 0.24);
+  fill: rgba(240, 228, 66, 0.24);
   stroke: var(--v-compare);
   stroke-width: 2.5;
 }
@@ -54,12 +54,12 @@
 }
 
 .visited circle {
-  fill: rgba(199, 125, 255, 0.22);
+  fill: rgba(204, 121, 167, 0.22);
   stroke: var(--v-write);
 }
 
 .found circle {
-  fill: rgba(69, 208, 158, 0.26);
+  fill: rgba(0, 158, 115, 0.26);
   stroke: var(--v-sorted);
   stroke-width: 2.5;
 }
@@ -112,7 +112,7 @@
 
 .cellHot {
   border-color: var(--v-compare);
-  background: rgba(255, 209, 102, 0.18);
+  background: rgba(240, 228, 66, 0.18);
   color: var(--v-compare);
 }
 

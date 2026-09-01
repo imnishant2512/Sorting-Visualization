@@ -4,6 +4,18 @@ An interactive visualizer for data structures and algorithms, built with React, 
 
 Every visualization runs on the same replay engine: an algorithm emits discrete, **exactly reversible** steps, and a player walks a cursor through them. That single design decision is what makes it possible to pause anywhere, step *backwards* through an individual comparison, scrub to any point in a run, or change speed mid-animation without restarting — none of which is possible when animation delays are baked into the algorithm itself.
 
+**Race mode** — two algorithms, one array, one clock. Merge has done 28 comparisons where quicksort has done 53:
+
+![Quick sort racing merge sort on an identical array](img/sorting-race.jpg)
+
+**Pathfinding** — A\* fanning around walls and heavy terrain, with the pseudocode line it is executing:
+
+![A* searching a random maze](img/pathfinding.jpg)
+
+**Interactive structures** — operations run against a live tree and land in an undoable history:
+
+![An in-order traversal part-way through a binary search tree](img/trees.jpg)
+
 ## What's in it
 
 | Domain | Contents |
@@ -42,6 +54,9 @@ Every visualization runs on the same replay engine: an algorithm emits discrete,
 - **Race mode** — run two sorting algorithms against the identical starting array under one shared clock, each with its own stats.
 - **Interactive structures** — trees, graphs, hash tables and linear structures accumulate operations against a persistent structure, with a history panel and undo.
 - **Input shapes** — random, nearly sorted, reversed, or few-unique arrays, so you can watch insertion sort go near-linear or quicksort degrade.
+- **Keyboard control** — Space to play or pause, ← and → to step. Shortcuts yield whichever key the focused control already owns, so arrows still adjust a focused slider.
+- **Shareable links** — the sorting and searching pages keep their setup in the URL, so a link reproduces the exact run. Inputs travel as a seed rather than as an array.
+- **Colour-blind safe** — visualization states use the Okabe-Ito palette and are separated by lightness as well as hue, so they survive deuteranopia, protanopia and greyscale.
 
 ## Architecture
 
@@ -95,12 +110,15 @@ npm run lint      # eslint
 
 ## Tests
 
-409 tests covering:
+437 tests covering:
 
+- the pages themselves — URL round-tripping, the bogo size cap, playback
+  stopping on its own, race mode wiring, and the keyboard focus rules. Every
+  bug that actually reached the browser during this build lived in this layer,
+  not in the algorithms;
 - the `useStepPlayer` hook itself — that mounting, StrictMode double-rendering
   and swapping algorithms mid-run do not trigger a render loop, since the reset
   is done by adjusting state during render rather than in an effect;
-
 - every sorting and searching algorithm across random, sorted, reversed, duplicate, all-same, empty and single-element inputs;
 - exact step inversion for every step of every algorithm in every domain;
 - full step-back to the exact starting state with all counters returning to zero;
