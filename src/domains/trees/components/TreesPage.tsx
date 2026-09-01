@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useInteractiveStructure } from '../../../engine/useInteractiveStructure';
 import { OperationHistoryPanel } from '../../../shared/components/OperationHistoryPanel';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
 import { PseudocodePanel } from '../../../shared/components/PseudocodePanel';
 import { StatsPanel } from '../../../shared/components/StatsPanel';
 import { SPEED_MS } from '../../../shared/utils/randomArray';
@@ -91,6 +92,18 @@ export function TreesPage() {
     else tree.perform(operation as never, args);
     setPlaying(true);
   };
+
+  usePlaybackKeys({
+    onToggle: () => setPlaying((p) => !p),
+    onStepBack: () => {
+      setPlaying(false);
+      controller.prev();
+    },
+    onStepForward: () => {
+      setPlaying(false);
+      controller.next();
+    },
+  });
 
   const modeMeta = MODES.find((m) => m.id === mode)!;
   const height = isHeap
@@ -199,45 +212,49 @@ export function TreesPage() {
         resetLabel="Cancel operation"
       />
 
-      {isHeap ? (
-        <HeapSvg state={heap.displayState} currentStep={heap.currentStep} />
-      ) : (
-        <TreeSvg state={tree.displayState} currentStep={tree.currentStep} />
-      )}
+      <div className={styles.workspace}>
+        <div className={styles.left}>
+          {isHeap ? (
+            <HeapSvg state={heap.displayState} currentStep={heap.currentStep} />
+          ) : (
+            <TreeSvg state={tree.displayState} currentStep={tree.currentStep} />
+          )}
 
-      <div className={styles.readoutRow}>
-        <span className={styles.metric}>
-          Height <strong>{height}</strong>
-        </span>
-        <span className={styles.metric}>
-          Nodes{' '}
-          <strong>
-            {isHeap
-              ? heap.displayState.items.length
-              : Object.keys(tree.displayState.nodes).length}
-          </strong>
-        </span>
-        {controller.displayState.note && (
-          <span className={styles.note}>{controller.displayState.note}</span>
-        )}
-      </div>
+          <div className={styles.readoutRow}>
+            <span className={styles.metric}>
+              Height <strong>{height}</strong>
+            </span>
+            <span className={styles.metric}>
+              Nodes{' '}
+              <strong>
+                {isHeap
+                  ? heap.displayState.items.length
+                  : Object.keys(tree.displayState.nodes).length}
+              </strong>
+            </span>
+            {controller.displayState.note && (
+              <span className={styles.note}>{controller.displayState.note}</span>
+            )}
+          </div>
+        </div>
 
-      <div className={styles.readouts}>
-        <StatsPanel stats={controller.frame.stats} labels={isHeap ? HEAP_LABELS : TREE_LABELS} />
-        <PseudocodePanel
-          lines={controller.active?.pseudocode ?? ['Run an operation to see its steps.']}
-          activeLine={controller.frame.currentLine}
-          title={controller.active?.label ?? 'Pseudocode'}
-        />
-        <OperationHistoryPanel
-          history={controller.history}
-          activeLabel={controller.active?.label ?? null}
-          onUndo={() => {
-            setPlaying(false);
-            controller.undoLast();
-          }}
-          canUndo={controller.canUndo}
-        />
+        <div className={styles.readouts}>
+          <StatsPanel stats={controller.frame.stats} labels={isHeap ? HEAP_LABELS : TREE_LABELS} />
+          <PseudocodePanel
+            lines={controller.active?.pseudocode ?? ['Run an operation to see its steps.']}
+            activeLine={controller.frame.currentLine}
+            title={controller.active?.label ?? 'Pseudocode'}
+          />
+          <OperationHistoryPanel
+            history={controller.history}
+            activeLabel={controller.active?.label ?? null}
+            onUndo={() => {
+              setPlaying(false);
+              controller.undoLast();
+            }}
+            canUndo={controller.canUndo}
+          />
+        </div>
       </div>
     </div>
   );

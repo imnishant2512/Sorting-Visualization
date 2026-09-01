@@ -90,15 +90,29 @@
   font-size: 12px;
 }
 
-.readouts {
+/* Visualization left, readouts right, both in view at once. */
+.workspace {
   display: grid;
-  grid-template-columns: minmax(180px, 0.9fr) minmax(260px, 1.5fr) minmax(200px, 1fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
   gap: 12px;
   align-items: start;
 }
 
-@media (max-width: 1100px) {
-  .readouts {
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.readouts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 1200px) {
+  .workspace {
     grid-template-columns: 1fr;
   }
 }

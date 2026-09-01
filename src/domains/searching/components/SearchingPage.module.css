@@ -55,8 +55,29 @@
   color: var(--text-faint);
 }
 
+/* Visualization left, readouts right, both in view at once. */
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
 .chart {
-  height: 320px;
+  height: 360px;
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
 }
 
 .found,
@@ -78,14 +99,7 @@
 }
 
 .readouts {
-  display: grid;
-  grid-template-columns: minmax(200px, 1fr) minmax(260px, 1.8fr);
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .readouts {
-    grid-template-columns: 1fr;
-  }
 }

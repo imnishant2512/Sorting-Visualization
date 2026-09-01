@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { buildSteps, initFrame, seek, stepBack, stepForward } from './player';
+import { buildSteps, initFrame, seek, stepBack, stepForward, stepForwardBy } from './player';
 import type { AlgorithmDefinition, Frame, StepEngine } from './types';
+import { usePlaybackTicker } from './usePlaybackTicker';
 
 export interface UseStepPlayerArgs<TInput, TState, TStep> {
   def: AlgorithmDefinition<TInput, TState, TStep>;
@@ -64,13 +65,12 @@ export function useStepPlayer<TInput, TState, TStep>({
 
   const atEnd = frame.cursor >= steps.length - 1;
 
-  useEffect(() => {
-    if (!playing || atEnd) return;
-    const id = window.setInterval(() => {
-      setFrame((current) => stepForward(current, steps, engine));
-    }, speedMs);
-    return () => window.clearInterval(id);
-  }, [playing, atEnd, speedMs, steps, engine]);
+  const advance = useCallback(
+    (count: number) => setFrame((current) => stepForwardBy(current, steps, engine, count)),
+    [steps, engine],
+  );
+
+  usePlaybackTicker({ playing, speedMs, enabled: !atEnd, onAdvance: advance });
 
   // Report completion so the owner can flip its own play state off.
   useEffect(() => {

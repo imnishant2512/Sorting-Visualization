@@ -62,6 +62,26 @@ export function stepForward<TState, TStep>(
   };
 }
 
+/**
+ * Applies up to `count` steps in one go, stopping at the end.
+ *
+ * Playback uses this to apply several steps per animation frame at high
+ * speeds: one step per timer tick caps out around 250 steps/second, which
+ * makes a 5,000-step run unwatchably long.
+ */
+export function stepForwardBy<TState, TStep>(
+  frame: Frame<TState>,
+  steps: readonly TStep[],
+  engine: StepEngine<TState, TStep>,
+  count: number,
+): Frame<TState> {
+  let current = frame;
+  for (let i = 0; i < count && current.cursor < steps.length - 1; i++) {
+    current = stepForward(current, steps, engine);
+  }
+  return current;
+}
+
 /** Un-applies steps[cursor]. No-op when already before the first step. */
 export function stepBack<TState, TStep>(
   frame: Frame<TState>,

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useStepPlayer } from '../../../engine/useStepPlayer';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
 import {
   ARRAY_SHAPES,
   ARRAY_SIZE,
@@ -112,6 +113,12 @@ export function SortingPage() {
     playerB.reset();
   };
 
+  usePlaybackKeys({
+    onToggle: handleToggle,
+    onStepBack: handleStepBack,
+    onStepForward: handleStepForward,
+  });
+
   return (
     <div className={styles.page}>
       <header className={styles.intro}>
@@ -193,6 +200,7 @@ export function SortingPage() {
                 playerA.seekTo(cursor);
               }
         }
+        seekDisabledReason="Scrubbing is off in race mode — the two runs have different lengths, so one cursor cannot mean the same thing for both."
         resetLabel="Restart"
       />
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { initFrame, seek, stepBack, stepForward } from './player';
 import type { Frame, StepEngine } from './types';
+import { usePlaybackTicker } from './usePlaybackTicker';
 
 /**
  * One user-triggered operation against a persistent structure — "Insert 7",
@@ -196,11 +197,19 @@ export function useInteractiveStructure<TState, TStep, TArgs>({
   const totalSteps = state.active?.steps.length ?? 0;
   const atEnd = state.frame.cursor >= totalSteps - 1;
 
-  useEffect(() => {
-    if (!playing || !state.active || atEnd) return;
-    const id = window.setInterval(() => dispatch({ type: 'forward' }), speedMs);
-    return () => window.clearInterval(id);
-  }, [playing, atEnd, speedMs, state.active]);
+  const advance = useCallback((count: number) => {
+    // Operations are short (1-20 steps), so batching rarely kicks in here —
+    // but sharing the ticker keeps the speed slider meaning the same thing
+    // everywhere.
+    for (let i = 0; i < count; i++) dispatch({ type: 'forward' });
+  }, []);
+
+  usePlaybackTicker({
+    playing,
+    speedMs,
+    enabled: Boolean(state.active) && !atEnd,
+    onAdvance: advance,
+  });
 
   useEffect(() => {
     if (playing && (atEnd || !state.active)) onIdle?.();

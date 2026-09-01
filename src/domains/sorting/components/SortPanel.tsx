@@ -61,24 +61,29 @@ export function SortPanel({
 
       <p className={styles.summary}>{def.summary}</p>
 
-      <div className={styles.chart}>
-        <BarChart
-          values={frame.state.values}
-          maxValue={maxValue}
-          stateFor={stateFor}
-          range={frame.state.range}
-          showValues={!compact}
-        />
-      </div>
+      {/* Chart and pseudocode sit side by side so the highlighted line is
+          visible while the bars are moving — stacked, the panel falls below
+          the fold and the sync is wasted. */}
+      <div className={styles.workspace}>
+        <div className={styles.chart}>
+          <BarChart
+            values={frame.state.values}
+            maxValue={maxValue}
+            stateFor={stateFor}
+            range={frame.state.range}
+            showValues={!compact}
+          />
+        </div>
 
-      <div className={styles.readouts}>
-        <StatsPanel
-          stats={frame.stats}
-          labels={STAT_LABELS}
-          complexity={def.complexity}
-          note={frame.state.note}
-        />
-        <PseudocodePanel lines={def.pseudocode} activeLine={frame.currentLine} />
+        <div className={styles.readouts}>
+          <StatsPanel
+            stats={frame.stats}
+            labels={STAT_LABELS}
+            complexity={def.complexity}
+            note={frame.state.note}
+          />
+          <PseudocodePanel lines={def.pseudocode} activeLine={frame.currentLine} />
+        </div>
       </div>
     </section>
   );

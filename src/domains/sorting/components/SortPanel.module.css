@@ -33,27 +33,35 @@
   min-height: 2.6em;
 }
 
+/* Visualization left, readouts right, both in view at once. */
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
 .chart {
-  height: 340px;
+  height: 380px;
+}
+
+.readouts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Race mode already splits the page in two, so each panel stacks. */
+.compact .workspace {
+  grid-template-columns: 1fr;
 }
 
 .compact .chart {
   height: 240px;
 }
 
-.readouts {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(240px, 1.6fr);
-  gap: 12px;
-  align-items: start;
-}
-
-.compact .readouts {
-  grid-template-columns: 1fr;
-}
-
-@media (max-width: 900px) {
-  .readouts {
+@media (max-width: 1100px) {
+  .workspace {
     grid-template-columns: 1fr;
   }
 }

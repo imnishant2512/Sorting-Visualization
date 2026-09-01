@@ -3,6 +3,7 @@ import { NavLink, useParams } from 'react-router-dom';
 import { useInteractiveStructure } from '../../../engine/useInteractiveStructure';
 import { OperationHistoryPanel } from '../../../shared/components/OperationHistoryPanel';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
 import { PseudocodePanel } from '../../../shared/components/PseudocodePanel';
 import { StatsPanel } from '../../../shared/components/StatsPanel';
 import { SPEED_MS } from '../../../shared/utils/randomArray';
@@ -93,6 +94,18 @@ export function LinearPage() {
     else seq.perform(operation as never, args);
     setPlaying(true);
   };
+
+  usePlaybackKeys({
+    onToggle: () => setPlaying((p) => !p),
+    onStepBack: () => {
+      setPlaying(false);
+      controller.prev();
+    },
+    onStepForward: () => {
+      setPlaying(false);
+      controller.next();
+    },
+  });
 
   // Only the array exposes positional operations; everything else works at the ends.
   const needsIndex = variant === 'array';
@@ -193,36 +206,40 @@ export function LinearPage() {
         resetLabel="Cancel operation"
       />
 
-      {isList ? (
-        <ListView state={list.displayState} currentStep={list.currentStep} />
-      ) : (
-        <SeqView
-          state={seq.displayState}
-          currentStep={seq.currentStep}
-          variant={variant as 'array' | 'stack' | 'queue'}
-        />
-      )}
+      <div className={styles.workspace}>
+        <div className={styles.left}>
+          {isList ? (
+            <ListView state={list.displayState} currentStep={list.currentStep} />
+          ) : (
+            <SeqView
+              state={seq.displayState}
+              currentStep={seq.currentStep}
+              variant={variant as 'array' | 'stack' | 'queue'}
+            />
+          )}
 
-      {controller.displayState.note && (
-        <div className={styles.note}>{controller.displayState.note}</div>
-      )}
+          {controller.displayState.note && (
+            <div className={styles.note}>{controller.displayState.note}</div>
+          )}
+        </div>
 
-      <div className={styles.readouts}>
-        <StatsPanel stats={controller.frame.stats} labels={STAT_LABELS} />
-        <PseudocodePanel
-          lines={controller.active?.pseudocode ?? ['Run an operation to see its steps.']}
-          activeLine={controller.frame.currentLine}
-          title={controller.active?.label ?? 'Pseudocode'}
-        />
-        <OperationHistoryPanel
-          history={controller.history}
-          activeLabel={controller.active?.label ?? null}
-          onUndo={() => {
-            setPlaying(false);
-            controller.undoLast();
-          }}
-          canUndo={controller.canUndo}
-        />
+        <div className={styles.readouts}>
+          <StatsPanel stats={controller.frame.stats} labels={STAT_LABELS} />
+          <PseudocodePanel
+            lines={controller.active?.pseudocode ?? ['Run an operation to see its steps.']}
+            activeLine={controller.frame.currentLine}
+            title={controller.active?.label ?? 'Pseudocode'}
+          />
+          <OperationHistoryPanel
+            history={controller.history}
+            activeLabel={controller.active?.label ?? null}
+            onUndo={() => {
+              setPlaying(false);
+              controller.undoLast();
+            }}
+            canUndo={controller.canUndo}
+          />
+        </div>
       </div>
     </div>
   );

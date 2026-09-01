@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useInteractiveStructure } from '../../../engine/useInteractiveStructure';
 import { OperationHistoryPanel } from '../../../shared/components/OperationHistoryPanel';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
 import { PseudocodePanel } from '../../../shared/components/PseudocodePanel';
 import { StatsPanel } from '../../../shared/components/StatsPanel';
 import { SPEED_MS } from '../../../shared/utils/randomArray';
@@ -55,6 +56,18 @@ export function HashTablesPage() {
     // The two strategies lay keys out differently, so switching rebuilds the table.
     table.reset(initHashState(next, SIZE, SEED));
   };
+
+  usePlaybackKeys({
+    onToggle: () => setPlaying((p) => !p),
+    onStepBack: () => {
+      setPlaying(false);
+      table.prev();
+    },
+    onStepForward: () => {
+      setPlaying(false);
+      table.next();
+    },
+  });
 
   const count = liveKeys(state).length;
   const pseudocode =
@@ -159,24 +172,28 @@ export function HashTablesPage() {
         {state.note && <span className={styles.note}>{state.note}</span>}
       </div>
 
-      <BucketRows state={state} currentStep={table.currentStep} />
+      <div className={styles.workspace}>
+        <div className={styles.left}>
+          <BucketRows state={state} currentStep={table.currentStep} />
+        </div>
 
-      <div className={styles.readouts}>
-        <StatsPanel stats={table.frame.stats} labels={STAT_LABELS} />
-        <PseudocodePanel
-          lines={pseudocode ?? ['Run an operation to see its steps.']}
-          activeLine={table.frame.currentLine}
-          title={table.active?.label ?? 'Pseudocode'}
-        />
-        <OperationHistoryPanel
-          history={table.history}
-          activeLabel={table.active?.label ?? null}
-          onUndo={() => {
-            setPlaying(false);
-            table.undoLast();
-          }}
-          canUndo={table.canUndo}
-        />
+        <div className={styles.readouts}>
+          <StatsPanel stats={table.frame.stats} labels={STAT_LABELS} />
+          <PseudocodePanel
+            lines={pseudocode ?? ['Run an operation to see its steps.']}
+            activeLine={table.frame.currentLine}
+            title={table.active?.label ?? 'Pseudocode'}
+          />
+          <OperationHistoryPanel
+            history={table.history}
+            activeLabel={table.active?.label ?? null}
+            onUndo={() => {
+              setPlaying(false);
+              table.undoLast();
+            }}
+            canUndo={table.canUndo}
+          />
+        </div>
       </div>
 
       <p className={styles.footnote}>

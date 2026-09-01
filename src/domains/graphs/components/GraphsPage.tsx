@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useInteractiveStructure } from '../../../engine/useInteractiveStructure';
 import { OperationHistoryPanel } from '../../../shared/components/OperationHistoryPanel';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
 import { PseudocodePanel } from '../../../shared/components/PseudocodePanel';
 import { StatsPanel } from '../../../shared/components/StatsPanel';
 import { SPEED_MS } from '../../../shared/utils/randomArray';
@@ -107,6 +108,18 @@ export function GraphsPage() {
     if (tool !== 'delete') return;
     perform(removeEdge, { edgeId: id });
   };
+
+  usePlaybackKeys({
+    onToggle: () => setPlaying((p) => !p),
+    onStepBack: () => {
+      setPlaying(false);
+      graph.prev();
+    },
+    onStepForward: () => {
+      setPlaying(false);
+      graph.next();
+    },
+  });
 
   const runnable = startId !== null && state.nodes[startId] !== undefined;
 
@@ -224,35 +237,39 @@ export function GraphsPage() {
         {state.note && <span className={styles.note}>{state.note}</span>}
       </div>
 
-      <GraphSvg
-        state={state}
-        currentStep={graph.currentStep}
-        width={WIDTH}
-        height={HEIGHT}
-        startId={startId}
-        endId={endId}
-        selectedId={selectedId}
-        onCanvasClick={handleCanvasClick}
-        onNodeClick={handleNodeClick}
-        onEdgeClick={handleEdgeClick}
-      />
+      <div className={styles.workspace}>
+        <div className={styles.left}>
+          <GraphSvg
+            state={state}
+            currentStep={graph.currentStep}
+            width={WIDTH}
+            height={HEIGHT}
+            startId={startId}
+            endId={endId}
+            selectedId={selectedId}
+            onCanvasClick={handleCanvasClick}
+            onNodeClick={handleNodeClick}
+            onEdgeClick={handleEdgeClick}
+          />
+        </div>
 
-      <div className={styles.readouts}>
-        <StatsPanel stats={graph.frame.stats} labels={STAT_LABELS} />
-        <PseudocodePanel
-          lines={graph.active?.pseudocode ?? ['Run a traversal to see its steps.']}
-          activeLine={graph.frame.currentLine}
-          title={graph.active?.label ?? 'Pseudocode'}
-        />
-        <OperationHistoryPanel
-          history={graph.history}
-          activeLabel={graph.active?.label ?? null}
-          onUndo={() => {
-            setPlaying(false);
-            graph.undoLast();
-          }}
-          canUndo={graph.canUndo}
-        />
+        <div className={styles.readouts}>
+          <StatsPanel stats={graph.frame.stats} labels={STAT_LABELS} />
+          <PseudocodePanel
+            lines={graph.active?.pseudocode ?? ['Run a traversal to see its steps.']}
+            activeLine={graph.frame.currentLine}
+            title={graph.active?.label ?? 'Pseudocode'}
+          />
+          <OperationHistoryPanel
+            history={graph.history}
+            activeLabel={graph.active?.label ?? null}
+            onUndo={() => {
+              setPlaying(false);
+              graph.undoLast();
+            }}
+            canUndo={graph.canUndo}
+          />
+        </div>
       </div>
 
       <p className={styles.footnote}>

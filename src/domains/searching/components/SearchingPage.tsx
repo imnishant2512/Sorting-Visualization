@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useStepPlayer } from '../../../engine/useStepPlayer';
 import { BarChart, type BarState } from '../../../shared/components/BarChart';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
 import { PseudocodePanel } from '../../../shared/components/PseudocodePanel';
 import { StatsPanel } from '../../../shared/components/StatsPanel';
 import { ARRAY_SIZE, SPEED_MS, randomSortedArray } from '../../../shared/utils/randomArray';
@@ -76,6 +77,31 @@ export function SearchingPage() {
       ? `${target} is not in the array`
       : null;
 
+  const handleToggle = () => {
+    if (playing) {
+      setPlaying(false);
+      return;
+    }
+    if (!player.canStepForward) player.reset();
+    setPlaying(true);
+  };
+
+  const handleStepBack = () => {
+    setPlaying(false);
+    player.prev();
+  };
+
+  const handleStepForward = () => {
+    setPlaying(false);
+    player.next();
+  };
+
+  usePlaybackKeys({
+    onToggle: handleToggle,
+    onStepBack: handleStepBack,
+    onStepForward: handleStepForward,
+  });
+
   return (
     <div className={styles.page}>
       <header className={styles.intro}>
@@ -148,22 +174,9 @@ export function SearchingPage() {
         cursor={player.frame.cursor}
         totalSteps={player.totalSteps}
         speedMs={speedMs}
-        onToggle={() => {
-          if (playing) {
-            setPlaying(false);
-            return;
-          }
-          if (!player.canStepForward) player.reset();
-          setPlaying(true);
-        }}
-        onStepBack={() => {
-          setPlaying(false);
-          player.prev();
-        }}
-        onStepForward={() => {
-          setPlaying(false);
-          player.next();
-        }}
+        onToggle={handleToggle}
+        onStepBack={handleStepBack}
+        onStepForward={handleStepForward}
         onReset={() => {
           setPlaying(false);
           player.reset();
@@ -176,28 +189,33 @@ export function SearchingPage() {
         resetLabel="Restart"
       />
 
-      <div className={styles.chart}>
-        <BarChart
-          values={state.values}
-          maxValue={maxValue}
-          stateFor={stateFor}
-          range={state.lo <= state.hi ? { lo: state.lo, hi: state.hi } : null}
-          showValues
-        />
-      </div>
+      <div className={styles.workspace}>
+        <div className={styles.left}>
+          <div className={styles.chart}>
+            <BarChart
+              values={state.values}
+              maxValue={maxValue}
+              stateFor={stateFor}
+              range={state.lo <= state.hi ? { lo: state.lo, hi: state.hi } : null}
+              showValues
+            />
+          </div>
+          {outcome && (
+            <div className={state.foundIndex !== null ? styles.found : styles.missing}>
+              {outcome}
+            </div>
+          )}
+        </div>
 
-      {outcome && (
-        <div className={state.foundIndex !== null ? styles.found : styles.missing}>{outcome}</div>
-      )}
-
-      <div className={styles.readouts}>
-        <StatsPanel
-          stats={player.frame.stats}
-          labels={STAT_LABELS}
-          complexity={def.complexity}
-          note={state.note}
-        />
-        <PseudocodePanel lines={def.pseudocode} activeLine={player.frame.currentLine} />
+        <div className={styles.readouts}>
+          <StatsPanel
+            stats={player.frame.stats}
+            labels={STAT_LABELS}
+            complexity={def.complexity}
+            note={state.note}
+          />
+          <PseudocodePanel lines={def.pseudocode} activeLine={player.frame.currentLine} />
+        </div>
       </div>
     </div>
   );

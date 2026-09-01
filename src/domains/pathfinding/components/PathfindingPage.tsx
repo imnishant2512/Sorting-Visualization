@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useStepPlayer } from '../../../engine/useStepPlayer';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
+import { usePlaybackKeys } from '../../../shared/hooks/usePlaybackKeys';
 import { PseudocodePanel } from '../../../shared/components/PseudocodePanel';
 import { StatsPanel } from '../../../shared/components/StatsPanel';
 import { SPEED_MS } from '../../../shared/utils/randomArray';
@@ -125,6 +126,31 @@ export function PathfindingPage() {
     setWeights(nextWeights);
   };
 
+  const handleToggle = () => {
+    if (playing) {
+      setPlaying(false);
+      return;
+    }
+    if (!player.canStepForward) player.reset();
+    setPlaying(true);
+  };
+
+  const handleStepBack = () => {
+    setPlaying(false);
+    player.prev();
+  };
+
+  const handleStepForward = () => {
+    setPlaying(false);
+    player.next();
+  };
+
+  usePlaybackKeys({
+    onToggle: handleToggle,
+    onStepBack: handleStepBack,
+    onStepForward: handleStepForward,
+  });
+
   const { state } = player.frame;
   const outcome = state.found
     ? `Route found — cost ${state.pathCost}, ${state.path.filter(Boolean).length} cells`
@@ -189,22 +215,9 @@ export function PathfindingPage() {
         cursor={player.frame.cursor}
         totalSteps={player.totalSteps}
         speedMs={speedMs}
-        onToggle={() => {
-          if (playing) {
-            setPlaying(false);
-            return;
-          }
-          if (!player.canStepForward) player.reset();
-          setPlaying(true);
-        }}
-        onStepBack={() => {
-          setPlaying(false);
-          player.prev();
-        }}
-        onStepForward={() => {
-          setPlaying(false);
-          player.next();
-        }}
+        onToggle={handleToggle}
+        onStepBack={handleStepBack}
+        onStepForward={handleStepForward}
         onReset={() => {
           setPlaying(false);
           player.reset();
@@ -217,18 +230,23 @@ export function PathfindingPage() {
         resetLabel="Clear run"
       />
 
-      <Grid
-        state={state}
-        onCellDown={handleCellDown}
-        onCellEnter={handleCellEnter}
-        onRelease={() => setDrag(null)}
-      />
+      <div className={styles.workspace}>
+        <div className={styles.left}>
+          <Grid
+            state={state}
+            onCellDown={handleCellDown}
+            onCellEnter={handleCellEnter}
+            onRelease={() => setDrag(null)}
+          />
+          {outcome && (
+            <div className={state.found ? styles.found : styles.missing}>{outcome}</div>
+          )}
+        </div>
 
-      {outcome && <div className={state.found ? styles.found : styles.missing}>{outcome}</div>}
-
-      <div className={styles.readouts}>
-        <StatsPanel stats={player.frame.stats} labels={STAT_LABELS} complexity={def.complexity} />
-        <PseudocodePanel lines={def.pseudocode} activeLine={player.frame.currentLine} />
+        <div className={styles.readouts}>
+          <StatsPanel stats={player.frame.stats} labels={STAT_LABELS} complexity={def.complexity} />
+          <PseudocodePanel lines={def.pseudocode} activeLine={player.frame.currentLine} />
+        </div>
       </div>
 
       <footer className={styles.legend}>

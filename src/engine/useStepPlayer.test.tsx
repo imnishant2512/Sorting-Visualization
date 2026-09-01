@@ -107,6 +107,19 @@ describe('useStepPlayer', () => {
     expect(latest!.frame.state.values).toEqual([1, 2]);
   });
 
+  it('batches many steps per frame so long runs are watchable', async () => {
+    // Bubble on 40 reversed values is ~3,000 steps. One step per frame would
+    // need ~50 seconds at 60fps; batching should clear it almost immediately.
+    const reversed = Array.from({ length: 40 }, (_, i) => 40 - i);
+    render(<Harness algorithmId="bubble" values={reversed} playing speedMs={1} />);
+
+    const total = latest!.totalSteps;
+    expect(total).toBeGreaterThan(1500);
+
+    await waitFor(() => expect(latest!.canStepForward).toBe(false), { timeout: 4000 });
+    expect(latest!.frame.state.values).toEqual([...reversed].sort((a, b) => a - b));
+  });
+
   it('does not advance while paused', async () => {
     render(<Harness algorithmId="bubble" values={[2, 1]} playing={false} speedMs={1} />);
 
