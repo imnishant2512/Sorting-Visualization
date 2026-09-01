@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStepPlayer } from '../../../engine/useStepPlayer';
 import { BarChart, type BarState } from '../../../shared/components/BarChart';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
@@ -17,21 +17,22 @@ const STAT_LABELS = [
 
 const DEFAULT_SIZE = 30;
 
+/** A value that is actually present, so a fresh array starts with a hit. */
+function pickTarget(values: number[]): number {
+  return values[Math.floor(Math.random() * values.length)] ?? 0;
+}
+
 export function SearchingPage() {
   const [size, setSize] = useState(DEFAULT_SIZE);
   const [values, setValues] = useState<number[]>(() => randomSortedArray(DEFAULT_SIZE));
   const [algorithmId, setAlgorithmId] = useState('binary');
-  const [target, setTarget] = useState<number>(() => 0);
+  // Default to a target that is actually in the array, so the first run finds
+  // something. Chosen alongside the array rather than in a reactive effect.
+  const [target, setTarget] = useState<number>(() => pickTarget(values));
   const [speedMs, setSpeedMs] = useState<number>(SPEED_MS.default * 3);
   const [playing, setPlaying] = useState(false);
 
   const def = SEARCH_BY_ID[algorithmId];
-
-  // Pick a target that exists in the array on first render and whenever the
-  // array is regenerated, so the default run actually finds something.
-  useEffect(() => {
-    setTarget(values[Math.floor(Math.random() * values.length)] ?? 0);
-  }, [values]);
 
   const input = useMemo(() => ({ values, target }), [values, target]);
   const maxValue = useMemo(() => Math.max(1, ...values), [values]);
@@ -45,9 +46,9 @@ export function SearchingPage() {
     playing,
   });
 
-  useEffect(() => {
-    if (playing && !player.canStepForward) setPlaying(false);
-  }, [playing, player.canStepForward]);
+  // Adjusted during render rather than in an effect: it converges immediately
+  // and never commits a frame claiming to play with no steps left.
+  if (playing && !player.canStepForward) setPlaying(false);
 
   const { state } = player.frame;
   const step = player.currentStep;
@@ -64,7 +65,9 @@ export function SearchingPage() {
 
   const regenerate = (nextSize: number) => {
     setPlaying(false);
-    setValues(randomSortedArray(nextSize));
+    const nextValues = randomSortedArray(nextSize);
+    setValues(nextValues);
+    setTarget(pickTarget(nextValues));
   };
 
   const outcome = state.foundIndex !== null

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStepPlayer } from '../../../engine/useStepPlayer';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
 import {
@@ -47,14 +47,13 @@ export function SortingPage() {
     playing: playing && raceMode,
   });
 
+  const allFinished = !playerA.canStepForward && (!raceMode || !playerB.canStepForward);
+
   // Stop the shared clock only once every active player has finished, so the
-  // faster algorithm showing "Done" doesn't freeze the slower one.
-  useEffect(() => {
-    if (!playing) return;
-    const aDone = !playerA.canStepForward;
-    const bDone = !raceMode || !playerB.canStepForward;
-    if (aDone && bDone) setPlaying(false);
-  }, [playing, playerA.canStepForward, playerB.canStepForward, raceMode]);
+  // faster algorithm showing "Done" doesn't freeze the slower one. Adjusted
+  // during render rather than in an effect: it converges immediately and never
+  // commits a frame that claims to be playing when nothing is left to play.
+  if (playing && allFinished) setPlaying(false);
 
   // Bogo sort is the only algorithm with a hard size ceiling; picking it (in
   // either panel) clamps the array rather than freezing the tab.
@@ -63,20 +62,25 @@ export function SortingPage() {
     raceMode ? (MAX_SIZE_BY_ID[idB] ?? ARRAY_SIZE.max) : ARRAY_SIZE.max,
   );
 
-  const regenerate = (nextShape: ArrayShape, nextSize: number) => {
+  const regenerate = (shapeToUse: ArrayShape, sizeToUse: number, capToUse = sizeCap) => {
     setPlaying(false);
-    const clamped = Math.min(nextSize, sizeCap);
-    if (clamped !== size) setSize(clamped);
-    setBaseArray(makeArray(nextShape, clamped));
+    const clamped = Math.min(sizeToUse, capToUse);
+    setSize(clamped);
+    setBaseArray(makeArray(shapeToUse, clamped));
   };
 
-  // Re-clamp when the algorithm selection introduces a tighter ceiling.
-  useEffect(() => {
-    if (size > sizeCap) regenerate(shape, sizeCap);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sizeCap]);
+  /** Selecting an algorithm can tighten the size ceiling, so re-clamp here. */
+  const selectAlgorithm = (panel: 'a' | 'b', id: string) => {
+    setPlaying(false);
+    if (panel === 'a') setIdA(id);
+    else setIdB(id);
 
-  const allFinished = !playerA.canStepForward && (!raceMode || !playerB.canStepForward);
+    const nextCap = Math.min(
+      MAX_SIZE_BY_ID[panel === 'a' ? id : idA] ?? ARRAY_SIZE.max,
+      raceMode ? (MAX_SIZE_BY_ID[panel === 'b' ? id : idB] ?? ARRAY_SIZE.max) : ARRAY_SIZE.max,
+    );
+    if (size > nextCap) regenerate(shape, nextCap, nextCap);
+  };
 
   const handleToggle = () => {
     if (playing) {
@@ -198,10 +202,7 @@ export function SortingPage() {
           frame={playerA.frame}
           currentStep={playerA.currentStep}
           maxValue={maxValue}
-          onAlgorithmChange={(id) => {
-            setPlaying(false);
-            setIdA(id);
-          }}
+          onAlgorithmChange={(id) => selectAlgorithm('a', id)}
           compact={raceMode}
           finished={raceMode && !playerA.canStepForward}
         />
@@ -212,10 +213,7 @@ export function SortingPage() {
             frame={playerB.frame}
             currentStep={playerB.currentStep}
             maxValue={maxValue}
-            onAlgorithmChange={(id) => {
-              setPlaying(false);
-              setIdB(id);
-            }}
+            onAlgorithmChange={(id) => selectAlgorithm('b', id)}
             compact
             finished={!playerB.canStepForward}
           />

@@ -90,11 +90,16 @@ npm run dev       # dev server at localhost:5173
 npm run build     # typecheck + production build
 npm run preview   # serve the production build
 npm run test      # vitest
+npm run lint      # eslint
 ```
 
 ## Tests
 
-402 tests covering:
+409 tests covering:
+
+- the `useStepPlayer` hook itself — that mounting, StrictMode double-rendering
+  and swapping algorithms mid-run do not trigger a render loop, since the reset
+  is done by adjusting state during render rather than in an effect;
 
 - every sorting and searching algorithm across random, sorted, reversed, duplicate, all-same, empty and single-element inputs;
 - exact step inversion for every step of every algorithm in every domain;

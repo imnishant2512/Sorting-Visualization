@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useStepPlayer } from '../../../engine/useStepPlayer';
 import { PlaybackControls } from '../../../shared/components/PlaybackControls';
 import { PseudocodePanel } from '../../../shared/components/PseudocodePanel';
@@ -53,9 +53,9 @@ export function PathfindingPage() {
     playing,
   });
 
-  useEffect(() => {
-    if (playing && !player.canStepForward) setPlaying(false);
-  }, [playing, player.canStepForward]);
+  // Adjusted during render rather than in an effect: it converges immediately
+  // and never commits a frame claiming to play with no steps left.
+  if (playing && !player.canStepForward) setPlaying(false);
 
   const applyTool = useCallback(
     (index: number) => {

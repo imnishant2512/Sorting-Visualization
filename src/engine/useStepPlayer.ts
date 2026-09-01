@@ -53,12 +53,14 @@ export function useStepPlayer<TInput, TState, TStep>({
     initFrame(initialState, statKeys, steps.length),
   );
 
-  // New algorithm or new input: rewind to a fresh frame.
-  useEffect(() => {
+  // A new algorithm or input rewinds to a fresh frame. Adjusting during render
+  // rather than in an effect means the stale frame is never committed — React
+  // re-runs this component immediately instead of painting the old steps first.
+  const [renderedSteps, setRenderedSteps] = useState(steps);
+  if (steps !== renderedSteps) {
+    setRenderedSteps(steps);
     setFrame(initFrame(initialState, statKeys, steps.length));
-    // statKeys is a module-level constant per domain.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [steps, initialState]);
+  }
 
   const atEnd = frame.cursor >= steps.length - 1;
 
