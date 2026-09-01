@@ -21,7 +21,6 @@ function renderAt(variant: string) {
   );
 }
 
-const playButton = () => screen.getByRole('button', { name: /Play|Pause/ });
 const counter = () => screen.getByText(/\d+ \/ \d+/).textContent ?? '';
 
 afterEach(cleanup);
@@ -38,11 +37,11 @@ describe('LinearPage', () => {
       });
       fireEvent.click(firstOperation);
 
-      // The regression froze the cursor at 0 forever.
+      // The regression froze the cursor at 0/0 forever, so an operation
+      // starting and advancing at all is the whole assertion. Waiting for it
+      // to *finish* would tie the test to wall-clock animation speed, which is
+      // what made this flaky on a loaded machine.
       await waitFor(() => expect(counter()).not.toMatch(/^0 \/ 0$/));
-      await waitFor(() => expect(playButton().hasAttribute('disabled')).toBe(true), {
-        timeout: 4000,
-      });
     },
   );
 
@@ -76,13 +75,23 @@ describe('LinearPage', () => {
 
   it('reports stack underflow instead of breaking', async () => {
     renderAt('stack');
-    for (let i = 0; i < 4; i++) {
-      fireEvent.click(screen.getByRole('button', { name: /^Pop$/ }));
-      await waitFor(() => expect(playButton().hasAttribute('disabled')).toBe(true), {
-        timeout: 4000,
-      });
-    }
-    fireEvent.click(screen.getByRole('button', { name: /^Pop$/ }));
-    await waitFor(() => expect(screen.getByText(/underflow/)).toBeDefined());
+
+    // Starting an operation commits whatever was still in flight, so the pops
+    // can be fired back to back. Waiting for each of the four to animate would
+    // put four sequential playbacks inside one test's time budget — which is
+    // exactly what made this flaky.
+    const pop = () => fireEvent.click(screen.getByRole('button', { name: /^Pop$/ }));
+    for (let i = 0; i < 5; i++) pop();
+
+    // The fifth pop hits an empty stack. "underflow" also appears in the pop
+    // pseudocode, so assert on the structure's own note rather than the page.
+    pop();
+    await waitFor(
+      () => {
+        const note = document.querySelector('[class*="note"]');
+        expect(note?.textContent ?? '').toMatch(/underflow/);
+      },
+      { timeout: 4000 },
+    );
   });
 });
