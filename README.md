@@ -108,6 +108,32 @@ npm run test      # vitest
 npm run lint      # eslint
 ```
 
+## Deploying
+
+Hosted as a static build on Firebase Hosting. `firebase.json` is committed; the
+one-time setup needs a Google account:
+
+```bash
+npx firebase-tools login          # interactive, opens a browser
+npx firebase-tools use --add      # pick or create a project, alias it "default"
+npm run deploy                    # builds, then deploys dist/
+```
+
+`npm run deploy:preview` publishes to a temporary preview channel instead, which
+is useful for checking a change before it goes live.
+
+**Why the rewrite rule matters.** The app uses client-side routing, so a shared
+link such as `/sorting?algo=quick&seed=2024` is a request for a path that does
+not exist on disk. The `"**" → /index.html` rewrite in `firebase.json` is what
+makes those links resolve; without it every deep link 404s and the shareable-URL
+feature is dead on arrival. Any other static host needs the same fallback —
+Vercel and Netlify infer it, GitHub Pages needs a `404.html` copy of
+`index.html`.
+
+Asset filenames are content-hashed by Vite, so they are served `immutable` for a
+year while `index.html` is never cached — otherwise a returning visitor keeps
+loading an old page that points at asset hashes the deploy no longer has.
+
 ## Tests
 
 437 tests covering:

@@ -2,6 +2,11 @@ node_modules
 dist
 .vite
 *.tsbuildinfo
+
+# Firebase local cache and login state. .firebaserc is intentionally not
+# ignored — it records which project to deploy to.
+.firebase
+*-debug.log
 dist-ssr
 *.local
 .DS_Store
