@@ -49,4 +49,10 @@ export const DOMAINS: DomainMeta[] = [
     blurb: 'Build a graph, then traverse it or find shortest paths.',
     icon: '🕸️',
   },
+  {
+    path: '/ide',
+    label: 'Code IDE',
+    blurb: 'Multi-language scratchpad to write and test your own code.',
+    icon: '💻',
+  },
 ];

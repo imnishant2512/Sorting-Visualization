@@ -2,6 +2,8 @@
 
 An interactive visualizer for data structures and algorithms, built with React, TypeScript and Vite.
 
+**Live Demo:** [Insert your Firebase URL here]
+
 Every visualization runs on the same replay engine: an algorithm emits discrete, **exactly reversible** steps, and a player walks a cursor through them. That single design decision is what makes it possible to pause anywhere, step *backwards* through an individual comparison, scrub to any point in a run, or change speed mid-animation without restarting — none of which is possible when animation delays are baked into the algorithm itself.
 
 **Race mode** — two algorithms, one array, one clock. Merge has done 28 comparisons where quicksort has done 53:
@@ -99,6 +101,8 @@ Trees, graphs, hash tables and linear structures are **operation mode**: a persi
 
 ## Running it
 
+Requires **Node.js 18 or higher**.
+
 ```bash
 npm install
 npm run dev       # dev server at localhost:5173
@@ -163,3 +167,7 @@ loading an old page that points at asset hashes the deploy no longer has.
 pull request, let CI go green, squash and merge. Branch naming, commit style,
 the invariants a change must preserve, and the `main` ruleset are all in
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
