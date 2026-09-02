@@ -39,7 +39,7 @@ export const SUPPORTED_LANGUAGES: LanguageConfig[] = [
     monacoLanguage: 'java',
     filename: 'main.java',
     wandboxCompiler: 'openjdk-jdk-22+36',
-    helloWorldTemplate: `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNextLine()) {\n            String input = scanner.nextLine();\n            System.out.println("Reversed input: " + new StringBuilder(input).reverse().toString());\n        }\n    }\n}\n`
+    helloWorldTemplate: `import java.util.Scanner;\n\nclass Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNextLine()) {\n            String input = scanner.nextLine();\n            System.out.println("Reversed input: " + new StringBuilder(input).reverse().toString());\n        }\n    }\n}\n`
   },
   {
     id: 'go',
