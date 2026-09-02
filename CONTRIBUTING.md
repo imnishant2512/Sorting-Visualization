@@ -124,4 +124,10 @@ required approvals to 1** and turn on *Require review from Code Owners* and
 *Dismiss stale pull request approvals when new commits are pushed*; `CODEOWNERS`
 is already in place for that.
 
-Plus **Settings → General → Automatically delete head branches**.
+Plus, under **Settings → General → Pull Requests**:
+
+- *Allow squash merging* only — merge commits and rebase merging are both
+  turned off, so squash is not merely the convention above but the only button
+  available. The ruleset also requires linear history, but admins can bypass a
+  ruleset and did once; removing the button is what actually holds.
+- *Automatically delete head branches*.
