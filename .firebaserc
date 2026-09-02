@@ -1,6 +1,5 @@
 {
   "projects": {
-    "staging": "sorting-visualization-29fd0",
     "default": "sorting-visualization-29fd0"
   },
   "targets": {},

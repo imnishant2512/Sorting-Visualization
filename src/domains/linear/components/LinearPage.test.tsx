@@ -81,10 +81,12 @@ describe('LinearPage', () => {
     // put four sequential playbacks inside one test's time budget — which is
     // exactly what made this flaky.
     const pop = () => fireEvent.click(screen.getByRole('button', { name: /^Pop$/ }));
-    for (let i = 0; i < 5; i++) pop();
+    for (let i = 0; i < 4; i++) pop();
 
-    // The fifth pop hits an empty stack. "underflow" also appears in the pop
-    // pseudocode, so assert on the structure's own note rather than the page.
+    // The page seeds every structure with four values, so those four pops
+    // leave the stack empty and this fifth one underflows. "underflow" also
+    // appears in the pop pseudocode, so assert on the structure's own note
+    // rather than on the page.
     pop();
     await waitFor(
       () => {
