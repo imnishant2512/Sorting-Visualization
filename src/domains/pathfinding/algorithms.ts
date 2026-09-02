@@ -294,7 +294,74 @@ export const bellmanFord = definePath({
   },
 });
 
-export const PATH_ALGORITHMS: PathAlgorithm[] = [bfs, dfs, dijkstra, astar, bellmanFord];
+export const greedyBestFirst = definePath({
+  id: 'greedy-best-first',
+  label: 'Greedy Best-First Search',
+  summary: 'Uses only the heuristic (distance to goal) to guide the search. Fast, but not guaranteed to find the shortest path.',
+  complexity: { time: 'O(E log V)', space: 'O(V)' },
+  weighted: true,
+  pseudocode: [
+    'open = {start}',
+    'while open is not empty',
+    '  cell = open cell minimising heuristic',
+    '  if cell == end: reconstruct path',
+    '  for each neighbour not yet visited:',
+    '    if we have a new best path to neighbour: relax it',
+    'no route exists',
+  ],
+  *generate(_state, input) {
+    const { rows, cols, walls, weights, start, end } = input;
+    const size = rows * cols;
+    const dist = new Array<number>(size).fill(Infinity);
+    const visited = new Array<boolean>(size).fill(false);
+    const open = new Set<number>();
+    const parent = new Map<number, number>();
+
+    const heuristic = (index: number) => manhattan(index, end, cols);
+
+    open.add(start);
+    yield { kind: 'frontier', index: start, line: 0 };
+    yield { kind: 'relax', index: start, dist: 0, prevDist: Infinity, line: 0 };
+    dist[start] = 0;
+
+    while (open.size > 0) {
+      let cell = -1;
+      let best = Infinity;
+      for (const candidate of open) {
+        const priority = heuristic(candidate); // ONLY heuristic
+        if (priority < best) {
+          best = priority;
+          cell = candidate;
+        }
+      }
+      open.delete(cell);
+      visited[cell] = true;
+      yield { kind: 'visit', index: cell, line: 2 };
+
+      if (cell === end) {
+        yield* reconstruct(parent, start, end, weights, 3);
+        return;
+      }
+
+      for (const next of neighbours(cell, rows, cols)) {
+        if (walls[next] || visited[next]) continue;
+        const candidate = dist[cell] + weights[next];
+        if (candidate >= dist[next]) continue;
+
+        if (!open.has(next)) {
+          open.add(next);
+          yield { kind: 'frontier', index: next, line: 4 };
+        }
+        yield { kind: 'relax', index: next, dist: candidate, prevDist: dist[next], line: 5 };
+        dist[next] = candidate;
+        parent.set(next, cell);
+      }
+    }
+    yield { kind: 'exhausted', line: 6 };
+  },
+});
+
+export const PATH_ALGORITHMS: PathAlgorithm[] = [bfs, dfs, dijkstra, astar, greedyBestFirst, bellmanFord];
 
 export const PATH_BY_ID: Record<string, PathAlgorithm> = Object.fromEntries(
   PATH_ALGORITHMS.map((a) => [a.id, a]),

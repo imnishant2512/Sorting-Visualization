@@ -306,12 +306,266 @@ export const graphAstar: GraphOperation = {
   },
 };
 
+export const graphTopologicalSort: GraphOperation = {
+  id: 'topological-sort',
+  label: () => 'Topological Sort',
+  readOnly: true,
+  pseudocode: [
+    'topologicalSort():',
+    '  compute in-degrees for all nodes',
+    '  queue = nodes with in-degree 0',
+    '  while queue is not empty',
+    '    node = queue.shift()',
+    '    for each neighbour: decrement in-degree',
+    '    if neighbour in-degree == 0: queue.push(neighbour)',
+  ],
+  *generate(state) {
+    yield* clearMarks(state);
+    const inDegree: Record<string, number> = {};
+    for (const id of Object.keys(state.nodes)) inDegree[id] = 0;
+    
+    // Treat edges as directed from `edge.from` to `edge.to`
+    for (const edge of Object.values(state.edges)) {
+      inDegree[edge.to] = (inDegree[edge.to] || 0) + 1;
+    }
+
+    const queue: string[] = [];
+    for (const id of Object.keys(state.nodes)) {
+      if (inDegree[id] === 0) {
+        queue.push(id);
+        yield { kind: 'frontier', id, line: 2 };
+      }
+    }
+
+    let prevPointer: string | null = null;
+    let visitedCount = 0;
+
+    while (queue.length > 0) {
+      const id = queue.shift()!;
+      yield { kind: 'pointer', id, prevId: prevPointer, line: 4 };
+      prevPointer = id;
+      yield { kind: 'visit', id, line: 4 };
+      visitedCount++;
+
+      for (const edge of Object.values(state.edges)) {
+        if (edge.from === id) {
+          const next = edge.to;
+          inDegree[next]--;
+          if (inDegree[next] === 0) {
+            queue.push(next);
+            yield { kind: 'frontier', id: next, line: 6 };
+          }
+        }
+      }
+    }
+    yield { kind: 'pointer', id: null, prevId: prevPointer, line: 6 };
+    if (visitedCount < Object.keys(state.nodes).length) {
+      yield { kind: 'note', note: 'Graph has a cycle!', prevNote: null, line: 6 };
+    }
+  },
+};
+
+export const graphCycleDetection: GraphOperation = {
+  id: 'cycle-detection',
+  label: () => 'Cycle Detection',
+  readOnly: true,
+  pseudocode: [
+    'cycleDetection():',
+    '  for each node:',
+    '    if node is unvisited, dfs(node)',
+    '  dfs(node, parent):',
+    '    mark node as visiting (grey)',
+    '    for each neighbour:',
+    '      if neighbour is visiting and not parent: CYCLE FOUND',
+    '      if neighbour is unvisited: dfs(neighbour, node)',
+    '    mark node as fully visited (black)',
+  ],
+  *generate(state) {
+    yield* clearMarks(state);
+    
+    const color: Record<string, 'white' | 'grey' | 'black'> = {};
+    for (const id of Object.keys(state.nodes)) color[id] = 'white';
+    let prevPointer: string | null = null;
+    let cycleFound = false;
+
+    function* dfs(id: string, parent: string | null): Generator<GraphStep> {
+      color[id] = 'grey';
+      yield { kind: 'frontier', id, line: 4 }; // frontier = grey
+      
+      yield { kind: 'pointer', id, prevId: prevPointer, line: 4 };
+      prevPointer = id;
+
+      for (const { edgeId, to: next } of neighboursOf(state, id)) {
+        if (color[next] === 'grey') {
+          if (next !== parent) {
+            yield { kind: 'pathEdge', id: edgeId, line: 6 };
+            yield { kind: 'note', note: 'Cycle detected!', prevNote: null, line: 6 };
+            cycleFound = true;
+            return;
+          }
+        } else if (color[next] === 'white') {
+          yield* dfs(next, id);
+          if (cycleFound) return;
+        }
+      }
+
+      color[id] = 'black';
+      yield { kind: 'visit', id, line: 8 }; // visit = black
+    }
+
+    for (const id of Object.keys(state.nodes)) {
+      if (color[id] === 'white') {
+        yield* dfs(id, null);
+        if (cycleFound) break;
+      }
+    }
+    
+    yield { kind: 'pointer', id: null, prevId: prevPointer, line: 8 };
+    if (!cycleFound) {
+      yield { kind: 'note', note: 'No cycle found', prevNote: null, line: 8 };
+    }
+  },
+};
+
+export const graphPrim: GraphOperation = {
+  id: 'prim',
+  label: ({ from }) => `Prim's MST from ${from ?? '?'}`,
+  readOnly: true,
+  pseudocode: [
+    'prim(start):',
+    '  dist[start] = 0; open = {start}',
+    '  while open is not empty:',
+    '    node = open node with smallest dist',
+    '    add node and its best edge to MST',
+    '    for each unseen neighbour:',
+    '      if weight < dist[neighbour]: relax it',
+  ],
+  *generate(state, { from }) {
+    yield* clearMarks(state);
+    if (!from || !state.nodes[from]) return;
+
+    const dist: Record<string, number> = { [from]: 0 };
+    const prevEdge: Record<string, string> = {};
+    const open = new Set([from]);
+    const done = new Set<string>();
+    let prevPointer: string | null = null;
+
+    yield { kind: 'frontier', id: from, line: 1 };
+    yield { kind: 'relax', id: from, dist: 0, prevDist: undefined, line: 1 };
+
+    let mstCost = 0;
+
+    while (open.size > 0) {
+      let best: string | null = null;
+      let bestScore = Infinity;
+      for (const candidate of open) {
+        if (dist[candidate] < bestScore) {
+          bestScore = dist[candidate];
+          best = candidate;
+        }
+      }
+      if (best === null) break;
+
+      open.delete(best);
+      done.add(best);
+      
+      yield { kind: 'pointer', id: best, prevId: prevPointer, line: 3 };
+      prevPointer = best;
+      yield { kind: 'visit', id: best, line: 4 };
+
+      if (prevEdge[best]) {
+        yield { kind: 'pathEdge', id: prevEdge[best], line: 4 };
+        mstCost += state.edges[prevEdge[best]].weight;
+      }
+
+      for (const { edgeId, to: next } of neighboursOf(state, best)) {
+        if (done.has(next)) continue;
+        const weight = state.edges[edgeId].weight;
+        if (dist[next] !== undefined && weight >= dist[next]) continue;
+
+        if (!open.has(next)) {
+          open.add(next);
+          yield { kind: 'frontier', id: next, line: 5 };
+        }
+        yield { kind: 'relax', id: next, dist: weight, prevDist: dist[next], line: 6 };
+        dist[next] = weight;
+        prevEdge[next] = edgeId;
+      }
+    }
+    yield { kind: 'pointer', id: null, prevId: prevPointer, line: 6 };
+    yield { kind: 'note', note: `MST Cost: ${mstCost}`, prevNote: null, line: 6 };
+  }
+};
+
+export const graphKruskal: GraphOperation = {
+  id: 'kruskal',
+  label: () => 'Kruskal\'s MST',
+  readOnly: true,
+  pseudocode: [
+    'kruskal():',
+    '  sort edges by weight',
+    '  for each edge (u, v):',
+    '    if u and v are in different sets:',
+    '      union(u, v)',
+    '      add edge to MST',
+  ],
+  *generate(state) {
+    yield* clearMarks(state);
+
+    const edges = Object.entries(state.edges).map(([id, edge]) => ({ id, ...edge }));
+    edges.sort((a, b) => a.weight - b.weight);
+
+    const parent: Record<string, string> = {};
+    for (const id of Object.keys(state.nodes)) parent[id] = id;
+
+    function find(i: string): string {
+      if (parent[i] === i) return i;
+      return find(parent[i]);
+    }
+
+    function union(i: string, j: string) {
+      const rootI = find(i);
+      const rootJ = find(j);
+      if (rootI !== rootJ) {
+        parent[rootI] = rootJ;
+      }
+    }
+
+    let mstCost = 0;
+    let prevPointer: string | null = null;
+
+    for (const edge of edges) {
+      const rootU = find(edge.from);
+      const rootV = find(edge.to);
+
+      yield { kind: 'pointer', id: edge.from, prevId: prevPointer, line: 2 };
+      prevPointer = edge.from;
+
+      if (rootU !== rootV) {
+        union(edge.from, edge.to);
+        mstCost += edge.weight;
+        yield { kind: 'pathEdge', id: edge.id, line: 5 };
+        // Visit nodes to show they are in MST
+        yield { kind: 'visit', id: edge.from, line: 5 };
+        yield { kind: 'visit', id: edge.to, line: 5 };
+      }
+    }
+    
+    yield { kind: 'pointer', id: null, prevId: prevPointer, line: 5 };
+    yield { kind: 'note', note: `MST Cost: ${mstCost}`, prevNote: null, line: 5 };
+  }
+};
+
 export const GRAPH_EDIT_OPERATIONS: GraphOperation[] = [addNode, addEdge, removeNode, removeEdge];
 export const GRAPH_RUN_OPERATIONS: GraphOperation[] = [
   graphBfs,
   graphDfs,
   graphDijkstra,
   graphAstar,
+  graphTopologicalSort,
+  graphCycleDetection,
+  graphPrim,
+  graphKruskal,
 ];
 export const GRAPH_OPERATIONS: GraphOperation[] = [
   ...GRAPH_EDIT_OPERATIONS,

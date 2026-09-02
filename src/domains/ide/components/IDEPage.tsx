@@ -1,78 +1,128 @@
 import { useState } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { useMonaco } from '@monaco-editor/react';
+import { SUPPORTED_LANGUAGES, LanguageId } from '../languageConfig';
+import { executeJavaScript } from '../executors/browserExecutor';
+import { executeWandbox } from '../executors/wandboxExecutor';
 import css from './IDEPage.module.css';
 
-const LANGUAGES = [
-  { id: 'javascript', name: 'JavaScript', version: '18.15.0', template: 'console.log("Hello, World!");' },
-  { id: 'python', name: 'Python', version: '3.10.0', template: 'print("Hello, World!")' },
-  { id: 'java', name: 'Java', version: '15.0.2', template: 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello, World!");\n  }\n}' },
-  { id: 'c++', name: 'C++', version: '10.2.0', template: '#include <iostream>\n\nint main() {\n  std::cout << "Hello, World!" << std::endl;\n  return 0;\n}' },
-  { id: 'go', name: 'Go', version: '1.16.2', template: 'package main\n\nimport "fmt"\n\nfunc main() {\n  fmt.Println("Hello, World!")\n}' },
-  { id: 'rust', name: 'Rust', version: '1.68.2', template: 'fn main() {\n  println!("Hello, World!");\n}' },
-];
-
 export function IDEPage() {
-  const [langIndex, setLangIndex] = useState(0);
-  const [code, setCode] = useState(LANGUAGES[0].template);
+  const monaco = useMonaco();
+  const [language, setLanguage] = useState<LanguageId>('javascript');
+  const [codes, setCodes] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    SUPPORTED_LANGUAGES.forEach(l => {
+      initial[l.id] = l.helloWorldTemplate;
+    });
+    return initial;
+  });
+
+  const [stdin, setStdin] = useState("Hello");
   const [output, setOutput] = useState('');
   const [isError, setIsError] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
 
-  const currentLang = LANGUAGES[langIndex];
+  const currentCode = codes[language];
+  const langConfig = SUPPORTED_LANGUAGES.find(l => l.id === language)!;
 
-  const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const idx = parseInt(e.target.value, 10);
-    setLangIndex(idx);
-    setCode(LANGUAGES[idx].template);
-    setOutput('');
+  const handleEditorChange = (value: string | undefined) => {
+    setCodes(prev => ({ ...prev, [language]: value || '' }));
+    // Clear squiggly lines when user types
+    if (monaco) {
+      const models = monaco.editor.getModels();
+      if (models.length > 0) {
+        monaco.editor.setModelMarkers(models[0], 'owner', []);
+      }
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEditorMount = (editor: any) => {
+    editor.addCommand(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).monaco?.KeyMod.CtrlCmd | (window as any).monaco?.KeyCode.Enter,
+      () => {
+        runCode();
+      }
+    );
   };
 
   const runCode = async () => {
     setIsRunning(true);
     setOutput('Running...');
     setIsError(false);
+    
+    // Clear markers
+    if (monaco) {
+      const models = monaco.editor.getModels();
+      if (models.length > 0) {
+        monaco.editor.setModelMarkers(models[0], 'owner', []);
+      }
+    }
 
     try {
-      const response = await fetch('https://emkc.org/api/v2/piston/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          language: currentLang.id,
-          version: currentLang.version,
-          files: [{ content: code }],
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.message) {
-        setOutput(data.message);
-        setIsError(true);
+      let res;
+      if (language === 'javascript') {
+        res = await executeJavaScript(currentCode, stdin);
+      } else if (langConfig.wandboxCompiler) {
+        res = await executeWandbox(currentCode, langConfig.wandboxCompiler, stdin);
       } else {
-        const runRes = data.run || {};
-        setOutput(runRes.output || runRes.stdout || runRes.stderr || 'No output.');
-        setIsError(runRes.code !== 0);
+        res = { stdout: '', stderr: '', error: 'Unknown executor' };
       }
-    } catch (err) {
-      setOutput('Failed to execute code. Please check your network connection.');
+      
+      const out = res.stdout + (res.stdout && res.stderr ? '\n' : '') + res.stderr;
+      setOutput(res.error || out || 'No output.');
+      setIsError(!!res.error || !!res.stderr);
+
+      if (res.stderr && monaco) {
+        const errorLines = res.stderr.split('\n');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const markers: any[] = [];
+        
+        errorLines.forEach(line => {
+          if (line.includes('error') || line.includes('Error')) {
+            const match = line.match(/:(\d+):(\d+):/);
+            if (match) {
+              const lineNum = parseInt(match[1], 10);
+              const colNum = parseInt(match[2], 10);
+              markers.push({
+                startLineNumber: lineNum,
+                startColumn: colNum,
+                endLineNumber: lineNum,
+                endColumn: colNum + 5,
+                message: line,
+                severity: monaco.MarkerSeverity.Error
+              });
+            }
+          }
+        });
+
+        if (markers.length > 0) {
+          const models = monaco.editor.getModels();
+          if (models.length > 0) {
+            monaco.editor.setModelMarkers(models[0], 'owner', markers);
+          }
+        }
+      }
+
+    } catch (err: unknown) {
+      setOutput(err instanceof Error ? err.message : String(err));
       setIsError(true);
     } finally {
       setIsRunning(false);
     }
   };
 
-  const getMonacoLanguage = (id: string) => {
-    if (id === 'c++') return 'cpp';
-    return id;
-  };
-
   return (
     <div className={css.container}>
       <div className={css.toolbar}>
-        <select className={css.select} value={langIndex} onChange={handleLangChange}>
-          {LANGUAGES.map((lang, idx) => (
-            <option key={lang.id} value={idx}>
-              {lang.name}
+        <select 
+          className={css.select} 
+          value={language} 
+          onChange={(e) => setLanguage(e.target.value as LanguageId)}
+        >
+          {SUPPORTED_LANGUAGES.map(lang => (
+            <option key={lang.id} value={lang.id}>
+              {lang.label}
             </option>
           ))}
         </select>
@@ -87,26 +137,40 @@ export function IDEPage() {
       
       <div className={css.workspace}>
         <div className={css.editorSection}>
-          <div className={css.header}>Editor</div>
+          <div className={css.header}>Editor ({langConfig.label})</div>
           <Editor
             height="100%"
-            language={getMonacoLanguage(currentLang.id)}
+            language={langConfig.monacoLanguage}
             theme="vs-dark"
-            value={code}
-            onChange={(val) => setCode(val || '')}
+            value={currentCode}
+            onChange={handleEditorChange}
+            onMount={handleEditorMount}
             options={{
               minimap: { enabled: false },
               fontSize: 14,
               padding: { top: 16 },
+              scrollBeyondLastLine: false,
             }}
           />
         </div>
         
-        <div className={css.outputSection}>
-          <div className={css.header}>Output</div>
-          <pre className={css.output + (isError ? ' ' + css.error : '')}>
-            {output}
-          </pre>
+        <div className={css.rightPanel}>
+          <div className={css.inputSection}>
+            <div className={css.header}>Standard Input (stdin)</div>
+            <textarea 
+              className={css.inputArea} 
+              value={stdin} 
+              onChange={e => setStdin(e.target.value)} 
+              placeholder="Custom input for stdin..."
+            />
+          </div>
+          
+          <div className={css.outputSection}>
+            <div className={css.header}>Output</div>
+            <pre className={css.output + (isError ? ' ' + css.error : '')}>
+              {output}
+            </pre>
+          </div>
         </div>
       </div>
     </div>
