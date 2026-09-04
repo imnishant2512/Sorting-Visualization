@@ -34,6 +34,8 @@ function loadDrafts(): Record<LanguageId, string> {
 export function IDEPage() {
   const monaco = useMonaco();
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
+  const runningRef = useRef(false);
+  const runTokenRef = useRef(0);
   const [language, setLanguage] = useState<LanguageId>('javascript');
   const [codes, setCodes] = useState<Record<LanguageId, string>>(loadDrafts);
   const [stdin, setStdin] = useState('Hello');
@@ -59,6 +61,17 @@ export function IDEPage() {
   }, [monaco]);
 
   const runCode = useCallback(async () => {
+    /*
+     * The Run button is disabled while a run is in flight, but Ctrl+Enter is
+     * not a button — without this guard the shortcut could start a second
+     * concurrent run (and a second Wandbox request) on top of the first.
+     */
+    if (runningRef.current) return;
+    runningRef.current = true;
+
+    // Invalidates any result that arrives after the user has moved on.
+    const token = ++runTokenRef.current;
+
     setIsRunning(true);
     setResult(null);
     clearMarkers();
@@ -67,6 +80,10 @@ export function IDEPage() {
       const outcome = langConfig.wandboxCompiler
         ? await executeWandbox(currentCode, langConfig.wandboxCompiler, stdin)
         : await executeJavaScript(currentCode, stdin);
+
+      // The user switched language (or reset) while this was in flight; its
+      // output belongs to a file that is no longer on screen.
+      if (token !== runTokenRef.current) return;
       setResult(outcome);
 
       if (outcome.stderr && monaco) {
@@ -90,19 +107,25 @@ export function IDEPage() {
                 endLineNumber: line,
                 endColumn: model.getLineMaxColumn(line),
                 message: diagnostic.message,
-                severity: monaco.MarkerSeverity.Error,
+                severity:
+                  diagnostic.severity === 'warning'
+                    ? monaco.MarkerSeverity.Warning
+                    : monaco.MarkerSeverity.Error,
               };
             }),
           );
         }
       }
     } catch (err) {
-      setResult({
-        stdout: '',
-        stderr: '',
-        error: err instanceof Error ? err.message : String(err),
-      });
+      if (token === runTokenRef.current) {
+        setResult({
+          stdout: '',
+          stderr: '',
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     } finally {
+      runningRef.current = false;
       setIsRunning(false);
     }
   }, [clearMarkers, currentCode, langConfig, monaco, stdin]);
@@ -126,12 +149,19 @@ export function IDEPage() {
   };
 
   const resetToTemplate = () => {
+    runTokenRef.current += 1;
     setCodes((prev) => ({ ...prev, [language]: langConfig.helloWorldTemplate }));
     setResult(null);
     clearMarkers();
   };
 
-  const failed = Boolean(result && (result.error || result.stderr || (result.exitCode ?? 0) !== 0));
+  /*
+   * Deliberately not `result.stderr` — a build that only warns writes to the
+   * same stream and still succeeds, so treating any stderr as failure paints a
+   * clean `exit 0` run red. Failure is not being able to run it, or a non-zero
+   * exit.
+   */
+  const failed = Boolean(result && (result.error || (result.exitCode ?? 0) !== 0));
   const body = result ? [result.stdout, result.stderr, result.error].filter(Boolean).join('\n') : '';
 
   return (
@@ -145,6 +175,7 @@ export function IDEPage() {
           className={css.select}
           value={language}
           onChange={(event) => {
+            runTokenRef.current += 1;
             setLanguage(event.target.value as LanguageId);
             setResult(null);
             clearMarkers();

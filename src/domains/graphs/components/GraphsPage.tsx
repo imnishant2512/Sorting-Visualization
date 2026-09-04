@@ -169,7 +169,15 @@ export function GraphsPage() {
                 * was written all rendered as "A*". The name now comes from the
                 * operation itself, which cannot go stale.
                 */}
-              {operation.shortLabel ?? operation.label({ from: startId, to: endId } as GraphArgs)}
+              {operation.shortLabel ??
+                operation.label({
+                  x: 0,
+                  y: 0,
+                  nodeId: null,
+                  edgeId: null,
+                  from: startId,
+                  to: endId,
+                })}
             </button>
           ))}
         </div>

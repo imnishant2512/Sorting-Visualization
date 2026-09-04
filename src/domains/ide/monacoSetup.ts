@@ -29,8 +29,3 @@ globalThis.MonacoEnvironment = {
 };
 
 loader.config({ monaco });
-
-// The CDN loader this replaces published the instance globally, and Monaco's
-// own tooling expects to find it there. Keeping it means devtools behave the
-// same way against a bundled build.
-(globalThis as unknown as { monaco: typeof monaco }).monaco = monaco;

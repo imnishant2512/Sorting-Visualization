@@ -89,6 +89,36 @@ describe('IDEPage', () => {
     expect(screen.getByText(/exit 1/)).toBeDefined();
   });
 
+  /**
+   * A build that only warns exits 0 and has succeeded. Flagging any stderr as
+   * failure painted a working program's output in the failure colour.
+   */
+  it('does not treat a warning on a successful build as a failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => ({
+          status: '0',
+          program_output: 'Hello, World!',
+          compiler_error: 'prog.cc:1:2: warning: #warning heads up [-Wcpp]',
+        }),
+      }),
+    );
+
+    render(<IDEPage />);
+    fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'cpp' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+
+    await waitFor(() => expect(output()).toContain('Hello, World!'));
+    expect(output()).toContain('warning');
+    expect(screen.getByText(/exit 0/)).toBeDefined();
+    // The failure styling is what must not appear on a clean exit.
+    expect(screen.getByRole('status').className).not.toMatch(/error/);
+  });
+
   it('surfaces an unreachable compiler service as an error', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Failed to fetch')));
 
