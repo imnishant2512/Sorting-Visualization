@@ -59,4 +59,13 @@
   max-width: 1440px;
   margin: 0 auto;
   padding: 24px;
+  /*
+   * A column flex container, so a page that wants to fill the viewport can say
+   * `flex: 1` and get a real height. `.shell` is `min-height`, which leaves
+   * this element's computed height `auto` — a percentage height on a child
+   * resolves against that to `auto` too, which is what collapsed the IDE to
+   * the height of its own toolbar.
+   */
+  display: flex;
+  flex-direction: column;
 }

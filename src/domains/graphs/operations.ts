@@ -117,6 +117,7 @@ export const removeEdge: GraphOperation = {
 export const graphBfs: GraphOperation = {
   id: 'bfs',
   label: ({ from }) => `BFS from ${from ?? '?'}`,
+  shortLabel: 'BFS',
   readOnly: true,
   pseudocode: [
     'bfs(start):',
@@ -153,6 +154,7 @@ export const graphBfs: GraphOperation = {
 export const graphDfs: GraphOperation = {
   id: 'dfs',
   label: ({ from }) => `DFS from ${from ?? '?'}`,
+  shortLabel: 'DFS',
   readOnly: true,
   pseudocode: [
     'dfs(start):',
@@ -266,6 +268,7 @@ function* shortestPath(
 export const graphDijkstra: GraphOperation = {
   id: 'dijkstra',
   label: ({ from, to }) => `Dijkstra ${from ?? '?'} → ${to ?? '?'}`,
+  shortLabel: 'Dijkstra',
   readOnly: true,
   pseudocode: [
     'dijkstra(start, goal):',
@@ -284,6 +287,7 @@ export const graphDijkstra: GraphOperation = {
 export const graphAstar: GraphOperation = {
   id: 'astar',
   label: ({ from, to }) => `A* ${from ?? '?'} → ${to ?? '?'}`,
+  shortLabel: 'A*',
   readOnly: true,
   pseudocode: [
     'a*(start, goal):',
@@ -309,6 +313,7 @@ export const graphAstar: GraphOperation = {
 export const graphTopologicalSort: GraphOperation = {
   id: 'topological-sort',
   label: () => 'Topological Sort',
+  shortLabel: 'Topological sort',
   readOnly: true,
   pseudocode: [
     'topologicalSort():',
@@ -368,6 +373,7 @@ export const graphTopologicalSort: GraphOperation = {
 export const graphCycleDetection: GraphOperation = {
   id: 'cycle-detection',
   label: () => 'Cycle Detection',
+  shortLabel: 'Cycle detection',
   readOnly: true,
   pseudocode: [
     'cycleDetection():',
@@ -430,6 +436,7 @@ export const graphCycleDetection: GraphOperation = {
 export const graphPrim: GraphOperation = {
   id: 'prim',
   label: ({ from }) => `Prim's MST from ${from ?? '?'}`,
+  shortLabel: "Prim's MST",
   readOnly: true,
   pseudocode: [
     'prim(start):',
@@ -500,6 +507,7 @@ export const graphPrim: GraphOperation = {
 export const graphKruskal: GraphOperation = {
   id: 'kruskal',
   label: () => 'Kruskal\'s MST',
+  shortLabel: "Kruskal's MST",
   readOnly: true,
   pseudocode: [
     'kruskal():',

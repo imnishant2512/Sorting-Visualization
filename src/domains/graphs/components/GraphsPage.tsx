@@ -163,11 +163,21 @@ export function GraphsPage() {
               disabled={!runnable}
               onClick={() => perform(operation, {})}
             >
-              {operation.id === 'bfs' || operation.id === 'dfs'
-                ? operation.id.toUpperCase()
-                : operation.id === 'dijkstra'
-                  ? 'Dijkstra'
-                  : 'A*'}
+              {/*
+                * This was a ternary over three known ids that fell through to
+                * "A*" for anything else, so the four operations added after it
+                * was written all rendered as "A*". The name now comes from the
+                * operation itself, which cannot go stale.
+                */}
+              {operation.shortLabel ??
+                operation.label({
+                  x: 0,
+                  y: 0,
+                  nodeId: null,
+                  edgeId: null,
+                  from: startId,
+                  to: endId,
+                })}
             </button>
           ))}
         </div>

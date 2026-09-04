@@ -2,8 +2,6 @@
 
 An interactive visualizer for data structures and algorithms, built with React, TypeScript and Vite.
 
-**Live Demo:** [Insert your Firebase URL here]
-
 Every visualization runs on the same replay engine: an algorithm emits discrete, **exactly reversible** steps, and a player walks a cursor through them. That single design decision is what makes it possible to pause anywhere, step *backwards* through an individual comparison, scrub to any point in a run, or change speed mid-animation without restarting — none of which is possible when animation delays are baked into the algorithm itself.
 
 **Race mode** — two algorithms, one array, one clock. Merge has done 28 comparisons where quicksort has done 53:
@@ -24,11 +22,12 @@ Every visualization runs on the same replay engine: an algorithm emits discrete,
 | --- | --- |
 | **Sorting** | 17 algorithms, playback controls, live stats, pseudocode panel, side-by-side race mode |
 | **Searching** | Linear, binary, jump, interpolation, exponential |
-| **Pathfinding** | BFS, DFS, Dijkstra, A*, Bellman-Ford on a grid you draw walls and weights on |
+| **Pathfinding** | BFS, DFS, Dijkstra, A*, greedy best-first, Bellman-Ford on a grid you draw walls and weights on |
 | **Linear structures** | Array, stack, queue, linked list |
 | **Trees** | BST, AVL with step-through rotations, min/max heaps, four traversals |
 | **Hash tables** | Chaining vs linear probing, collisions, tombstones |
-| **Graphs** | Interactive graph building, BFS/DFS traversal, Dijkstra and A* shortest paths |
+| **Graphs** | Interactive graph building, BFS/DFS traversal, Dijkstra and A* shortest paths, topological sort, cycle detection, Prim and Kruskal |
+| **Code IDE** | Six languages in a Monaco editor — JavaScript in a sandboxed worker, the rest compiled on Wandbox |
 
 ### Algorithms
 
@@ -44,9 +43,9 @@ Every visualization runs on the same replay engine: an algorithm emits discrete,
 
 **Searching (5)**: linear, binary, jump, interpolation, exponential.
 
-**Pathfinding (5)**: BFS, DFS, Dijkstra, A*, Bellman-Ford.
+**Pathfinding (6)**: BFS, DFS, Dijkstra, A*, greedy best-first, Bellman-Ford.
 
-**Graphs (4)**: BFS, DFS, Dijkstra, A* — plus node/edge editing as first-class undoable operations.
+**Graphs (8)**: BFS, DFS, Dijkstra, A*, topological sort, cycle detection, Prim and Kruskal — plus node/edge editing as first-class undoable operations.
 
 ## Features
 
@@ -58,6 +57,10 @@ Every visualization runs on the same replay engine: an algorithm emits discrete,
 - **Input shapes** — random, nearly sorted, reversed, or few-unique arrays, so you can watch insertion sort go near-linear or quicksort degrade.
 - **Keyboard control** — Space to play or pause, ← and → to step. Shortcuts yield whichever key the focused control already owns, so arrows still adjust a focused slider.
 - **Shareable links** — the sorting and searching pages keep their setup in the URL, so a link reproduces the exact run. Inputs travel as a seed rather than as an array.
+- **Code IDE** — a scratchpad for your own code in six languages. JavaScript runs in a
+  terminable Web Worker in the tab, so an infinite loop is stopped after five seconds
+  instead of freezing the page; the compiled languages go to wandbox.org, which the
+  toolbar says plainly. Compiler diagnostics are shown in full and marked in the gutter.
 - **Colour-blind safe** — visualization states use the Okabe-Ito palette and are separated by lightness as well as hue, so they survive deuteranopia, protanopia and greyscale.
 
 ## Architecture
@@ -75,6 +78,7 @@ src/
       engine.ts       its StepEngine (applyStep / invertStep / statsDelta)
       algorithms.ts   or operations.ts — pure generators
       components/     its renderer and page
+    ide/            not a visualizer: Monaco + the two executors, code-split
   shared/components/  BarChart, PlaybackControls, StatsPanel, PseudocodePanel,
                       OperationHistoryPanel
   app/                Router, layout, landing page
@@ -134,13 +138,18 @@ feature is dead on arrival. Any other static host needs the same fallback —
 Vercel and Netlify infer it, GitHub Pages needs a `404.html` copy of
 `index.html`.
 
+**The IDE is code-split.** Monaco is several times the size of everything else, so
+`/ide` is lazy-loaded: the main bundle stays around 400 kB and the editor is only
+fetched when someone opens that page. Monaco is bundled rather than pulled from a
+CDN at runtime, so the deployed app works offline and under a strict CSP.
+
 Asset filenames are content-hashed by Vite, so they are served `immutable` for a
 year while `index.html` is never cached — otherwise a returning visitor keeps
 loading an old page that points at asset hashes the deploy no longer has.
 
 ## Tests
 
-437 tests covering:
+480 tests covering:
 
 - the pages themselves — URL round-tripping, the bogo size cap, playback
   stopping on its own, race mode wiring, and the keyboard focus rules. Every
@@ -159,7 +168,13 @@ loading an old page that points at asset hashes the deploy no longer has.
 - graph shortest paths checked against Floyd-Warshall for every node pair;
 - linked lists mirrored against a plain array through 60 random operations;
 - hand-checked counters (bubble sort on `[3,1,2]` is exactly 3 comparisons and 2 swaps);
-- every emitted pseudocode line index being in range.
+- every emitted pseudocode line index being in range;
+- the IDE's executors and diagnostic parser — that a failed compile keeps its
+  compiler message rather than being flattened to "Execution failed", that the
+  sandbox body survives being stringified into a worker, and that gcc, javac,
+  rustc and Python positions all parse;
+- that every graph operation has its own distinct control name, which a hardcoded
+  label ternary had quietly broken for four of them.
 
 ## Contributing
 

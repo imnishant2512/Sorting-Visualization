@@ -4,7 +4,9 @@ export interface LanguageConfig {
   id: LanguageId;
   label: string;
   monacoLanguage: string;
+  /** Shown on the editor header, and the name the snippet compiles under. */
   filename: string;
+  /** Absent for languages that run in-browser rather than on Wandbox. */
   wandboxCompiler?: string;
   helloWorldTemplate: string;
 }
@@ -58,31 +60,3 @@ export const SUPPORTED_LANGUAGES: LanguageConfig[] = [
     helloWorldTemplate: `use std::io::{self, Read};\n\nfn main() {\n    println!("Hello, World!");\n    let mut input = String::new();\n    io::stdin().read_to_string(&mut input).unwrap();\n    let input = input.trim();\n    if !input.is_empty() {\n        let reversed: String = input.chars().rev().collect();\n        println!("Reversed input: {}", reversed);\n    }\n}\n`
   }
 ];
-
-export const DEFAULT_VISUALIZER_CODE = `// Welcome to the Custom Visualization IDE!
-// Write a generator function named 'customSort' that takes a 'ctx' object.
-
-function* customSort(ctx) {
-  for (let i = 0; i < ctx.length; i++) {
-    let swapped = false;
-    for (let j = 0; j < ctx.length - i - 1; j++) {
-      
-      // 1. Yield a compare step
-      yield* ctx.compare(j, j + 1);
-      
-      if (ctx.at(j) > ctx.at(j + 1)) {
-        // 2. Yield a swap step
-        yield* ctx.swap(j, j + 1);
-        swapped = true;
-      }
-    }
-    
-    // 3. Mark the final position as sorted
-    yield* ctx.markSorted([ctx.length - i - 1]);
-    
-    if (!swapped) break;
-  }
-  
-  yield* ctx.markAllSorted();
-}
-`;
