@@ -6,8 +6,8 @@ import { PathfindingPage } from '../domains/pathfinding/components/PathfindingPa
 import { SearchingPage } from '../domains/searching/components/SearchingPage';
 import { SortingPage } from '../domains/sorting/components/SortingPage';
 import { TreesPage } from '../domains/trees/components/TreesPage';
-import { IDEPage } from '../domains/ide/components/IDEPage';
 import { Landing } from './Landing';
+import { LazyIDE } from './LazyIDE';
 import { Layout } from './Layout';
 
 export const router = createBrowserRouter([
@@ -24,7 +24,7 @@ export const router = createBrowserRouter([
       { path: 'trees', element: <TreesPage /> },
       { path: 'hashtables', element: <HashTablesPage /> },
       { path: 'graphs', element: <GraphsPage /> },
-      { path: 'ide', element: <IDEPage /> },
+      { path: 'ide', element: <LazyIDE /> },
       { path: '*', element: <Landing /> },
     ],
   },

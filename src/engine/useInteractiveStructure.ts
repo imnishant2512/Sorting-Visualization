@@ -11,6 +11,12 @@ import { usePlaybackTicker } from './usePlaybackTicker';
 export interface StructureOperation<TState, TStep, TArgs> {
   id: string;
   label(args: TArgs): string;
+  /**
+   * Name for a control that triggers the operation, where `label`'s
+   * argument-specific phrasing ("BFS from A") is too long. Falls back to
+   * `label` when absent, so a control can never be left without a name.
+   */
+  shortLabel?: string;
   pseudocode: string[];
   /** Pure: yields steps against the *current* structure. */
   generate(state: TState, args: TArgs): Generator<TStep>;

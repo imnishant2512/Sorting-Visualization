@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { edgeBetween, emptyGraph, graphEngine, neighboursOf, sampleGraph } from './engine';
 import {
   GRAPH_OPERATIONS,
+  GRAPH_RUN_OPERATIONS,
   addEdge,
   addNode,
   graphAstar,
@@ -205,5 +206,28 @@ describe('pseudocode mapping', () => {
         if (line !== undefined) expect(line, op.id).toBeLessThan(op.pseudocode.length);
       }
     }
+  });
+});
+
+describe('operation naming', () => {
+  /**
+   * The graphs page used to derive its run-button captions from a ternary over
+   * three known ids, falling through to "A*". Every operation added after that
+   * was written rendered as a second, third and fourth "A*" button. Distinct
+   * names are the property that was actually violated, so assert that.
+   */
+  it('gives every run operation its own control name', () => {
+    const args: GraphArgs = {
+      x: 0,
+      y: 0,
+      nodeId: null,
+      edgeId: null,
+      from: 'g0',
+      to: 'g4',
+    };
+    const names = GRAPH_RUN_OPERATIONS.map((op) => op.shortLabel ?? op.label(args));
+
+    expect(names.every((name) => name.trim().length > 0)).toBe(true);
+    expect(new Set(names).size).toBe(names.length);
   });
 });
