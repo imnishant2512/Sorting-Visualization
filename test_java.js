@@ -1,0 +1,1 @@
+fetch('https://wandbox.org/api/compile.json', { method: 'POST', body: JSON.stringify({ compiler: 'openjdk-jdk-22+36', code: 'class Main { public static void main(String[] args){ System.out.print(1); } }' }) }).then(r => r.text()).then(console.log).catch(console.error);
