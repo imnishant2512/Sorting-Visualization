@@ -2,6 +2,8 @@
 
 An interactive visualizer for data structures and algorithms, built with React, TypeScript and Vite.
 
+**Live:** https://sorting-visualization-29fd0.web.app
+
 Every visualization runs on the same replay engine: an algorithm emits discrete, **exactly reversible** steps, and a player walks a cursor through them. That single design decision is what makes it possible to pause anywhere, step *backwards* through an individual comparison, scrub to any point in a run, or change speed mid-animation without restarting — none of which is possible when animation delays are baked into the algorithm itself.
 
 **Race mode** — two algorithms, one array, one clock. Merge has done 28 comparisons where quicksort has done 53:
@@ -144,7 +146,7 @@ fetched when someone opens that page. Monaco is bundled rather than pulled from 
 CDN at runtime, so the deployed app works offline and under a strict CSP.
 
 Asset filenames are content-hashed by Vite, so they are served `immutable` for a
-year while `index.html` is never cached — otherwise a returning visitor keeps
+year while every route serving `index.html` is never cached — otherwise a returning visitor keeps
 loading an old page that points at asset hashes the deploy no longer has.
 
 ## Tests
